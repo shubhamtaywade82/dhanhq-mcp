@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "mcp/version"
-
 # Dhanhq namespace module
 module Dhanhq
   # MCP (Model Context Protocol) implementation for DhanHQ
@@ -15,3 +13,12 @@ module Dhanhq
     class Error < StandardError; end
   end
 end
+
+require_relative "mcp/version"
+require_relative "mcp/errors"
+require_relative "mcp/context"
+require_relative "mcp/tool_spec"
+require_relative "mcp/router"
+require_relative "mcp/server"
+
+require_relative "mcp/tools/base"
