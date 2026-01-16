@@ -9,35 +9,49 @@ module Dhanhq
         #
         # @return [Array<Hash>] holdings data
         def holdings
-          DhanHQ::Models::Holding.all
+          serialize_collection(DhanHQ::Models::Holding.all)
         end
 
         # Get current positions
         #
         # @return [Array<Hash>] positions data
         def positions
-          DhanHQ::Models::Position.all
+          serialize_collection(DhanHQ::Models::Position.all)
         end
 
         # Get available funds
         #
         # @return [Hash] funds data
         def funds
-          DhanHQ::Models::Funds.fetch
+          serialize_object(DhanHQ::Models::Funds.fetch)
         end
 
         # Get order book
         #
         # @return [Array<Hash>] order book
         def orders
-          DhanHQ::Models::Order.all
+          serialize_collection(DhanHQ::Models::Order.all)
         end
 
         # Get trade book
         #
         # @return [Array<Hash>] trade book
         def trades
-          DhanHQ::Models::Trade.today
+          serialize_collection(DhanHQ::Models::Trade.today)
+        end
+
+        private
+
+        def serialize_collection(collection)
+          collection.map { |item| serialize_object(item) }
+        end
+
+        def serialize_object(obj)
+          return obj if obj.is_a?(Hash)
+          return obj.to_h if obj.respond_to?(:to_h)
+          return obj.attributes if obj.respond_to?(:attributes)
+
+          obj
         end
       end
     end

@@ -6,37 +6,52 @@ RSpec.describe Dhanhq::Mcp::Tools::Portfolio do
   let(:tool) { described_class.new(context) }
 
   describe "#holdings" do
-    it "fetches holdings from DhanHQ Models" do
+    it "fetches holdings from DhanHQ Models and serializes to hashes" do
+      holding_obj = double("holding", to_h: { symbol: "INFY", quantity: 10 })
+      allow(DhanHQ::Models::Holding).to receive(:all).and_return([holding_obj])
+
+      result = tool.holdings
+
+      expect(result).to eq([{ symbol: "INFY", quantity: 10 }])
+      expect(result.first).to be_a(Hash)
+      expect(DhanHQ::Models::Holding).to have_received(:all)
+    end
+
+    it "handles already serialized hash responses" do
       holdings_data = [{ symbol: "INFY", quantity: 10 }]
       allow(DhanHQ::Models::Holding).to receive(:all).and_return(holdings_data)
 
       result = tool.holdings
 
       expect(result).to eq(holdings_data)
-      expect(DhanHQ::Models::Holding).to have_received(:all)
     end
   end
 
   describe "#positions" do
-    it "fetches positions from DhanHQ Models" do
-      positions_data = [{ symbol: "NIFTY", quantity: 50 }]
-      allow(DhanHQ::Models::Position).to receive(:all).and_return(positions_data)
+    it "fetches positions from DhanHQ Models and serializes to hashes" do
+      position_obj = double("position", attributes: { symbol: "NIFTY", quantity: 50 })
+      allow(DhanHQ::Models::Position).to receive(:all).and_return([position_obj])
 
       result = tool.positions
 
-      expect(result).to eq(positions_data)
+      expect(result).to eq([{ symbol: "NIFTY", quantity: 50 }])
+      expect(result.first).to be_a(Hash)
       expect(DhanHQ::Models::Position).to have_received(:all)
     end
   end
 
   describe "#funds" do
-    it "fetches funds from DhanHQ Models" do
-      funds_data = double("funds", available_balance: 50_000, sod_limit: 70_000)
-      allow(DhanHQ::Models::Funds).to receive(:fetch).and_return(funds_data)
+    it "fetches funds from DhanHQ Models and serializes to hash" do
+      funds_obj = double("funds",
+                         attributes: { available_balance: 50_000, sod_limit: 70_000 },
+                         available_balance: 50_000,
+                         sod_limit: 70_000)
+      allow(DhanHQ::Models::Funds).to receive(:fetch).and_return(funds_obj)
 
       result = tool.funds
 
-      expect(result).to eq(funds_data)
+      expect(result).to eq({ available_balance: 50_000, sod_limit: 70_000 })
+      expect(result).to be_a(Hash)
       expect(DhanHQ::Models::Funds).to have_received(:fetch)
     end
   end
