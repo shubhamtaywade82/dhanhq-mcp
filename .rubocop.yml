@@ -63,6 +63,7 @@ Metrics/ModuleLength:
   CountComments: false
   Exclude:
     - "spec/**/*"
+    - "lib/dhanhq/mcp/tool_spec.rb"
 
 Metrics/BlockLength:
   Max: 25

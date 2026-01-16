@@ -13,16 +13,23 @@ module Dhanhq
       # @raise [Errors::UnknownTool] when tool is not found
       def self.call(tool_name, args, context)
         route_instrument(tool_name, args, context) ||
+          route_market(tool_name, args, context) ||
           route_option(tool_name, args, context) ||
           raise(Errors::UnknownTool, tool_name)
       end
 
       def self.route_instrument(tool_name, args, context)
+        return unless tool_name.start_with?("instrument.")
+
+        action = tool_name.split(".").last
+        Tools::Instrument.new(context).public_send(action, args)
+      end
+
+      def self.route_market(tool_name, args, context)
         case tool_name
-        when "instrument.find"
-          Tools::Instrument.new(context).find(args)
-        when "instrument.info"
-          Tools::Instrument.new(context).info(args)
+        when "instrument.ltp", "instrument.quote", "instrument.ohlc",
+             "instrument.daily", "instrument.intraday"
+          route_instrument(tool_name, args, context)
         end
       end
 

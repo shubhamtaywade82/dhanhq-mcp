@@ -29,6 +29,72 @@ module Dhanhq
           required: %w[exchange_segment symbol],
         },
       },
+      # Market data – instrument driven
+      {
+        name: "instrument.ltp",
+        description: "Get last traded price via Instrument",
+        input_schema: {
+          type: "object",
+          properties: {
+            exchange_segment: { type: "string" },
+            symbol: { type: "string" },
+          },
+          required: %w[exchange_segment symbol],
+        },
+      },
+      {
+        name: "instrument.quote",
+        description: "Get full market quote via Instrument",
+        input_schema: {
+          type: "object",
+          properties: {
+            exchange_segment: { type: "string" },
+            symbol: { type: "string" },
+          },
+          required: %w[exchange_segment symbol],
+        },
+      },
+      {
+        name: "instrument.ohlc",
+        description: "Get OHLC snapshot via Instrument",
+        input_schema: {
+          type: "object",
+          properties: {
+            exchange_segment: { type: "string" },
+            symbol: { type: "string" },
+          },
+          required: %w[exchange_segment symbol],
+        },
+      },
+      {
+        name: "instrument.daily",
+        description: "Get daily historical candles via Instrument",
+        input_schema: {
+          type: "object",
+          properties: {
+            exchange_segment: { type: "string" },
+            symbol: { type: "string" },
+            from: { type: "string" },
+            to: { type: "string" },
+          },
+          required: %w[exchange_segment symbol from to],
+        },
+      },
+      {
+        name: "instrument.intraday",
+        description: "Get intraday candles via Instrument",
+        input_schema: {
+          type: "object",
+          properties: {
+            exchange_segment: { type: "string" },
+            symbol: { type: "string" },
+            from: { type: "string" },
+            to: { type: "string" },
+            interval: { type: "string" },
+          },
+          required: %w[exchange_segment symbol from to interval],
+        },
+      },
       # Options – instrument driven
       {
         name: "option.expiries",

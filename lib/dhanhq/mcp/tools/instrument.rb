@@ -29,6 +29,53 @@ module Dhanhq
           build_info_response(inst)
         end
 
+        # Get last traded price
+        #
+        # @param args [Hash] exchange_segment and symbol
+        # @return [Hash] LTP data
+        def ltp(args)
+          load(args).ltp
+        end
+
+        # Get full market quote
+        #
+        # @param args [Hash] exchange_segment and symbol
+        # @return [Hash] quote data with depth
+        def quote(args)
+          load(args).quote
+        end
+
+        # Get OHLC snapshot
+        #
+        # @param args [Hash] exchange_segment and symbol
+        # @return [Hash] OHLC data
+        def ohlc(args)
+          load(args).ohlc
+        end
+
+        # Get daily historical candles
+        #
+        # @param args [Hash] exchange_segment, symbol, from, to
+        # @return [Array<Hash>] daily candles
+        def daily(args)
+          load(args).daily(
+            from_date: args["from"],
+            to_date: args["to"],
+          )
+        end
+
+        # Get intraday candles
+        #
+        # @param args [Hash] exchange_segment, symbol, from, to, interval
+        # @return [Array<Hash>] intraday candles
+        def intraday(args)
+          load(args).intraday(
+            from_date: args["from"],
+            to_date: args["to"],
+            interval: args["interval"],
+          )
+        end
+
         private
 
         def load(args)
