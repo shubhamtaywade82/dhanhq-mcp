@@ -12,11 +12,19 @@ module Dhanhq
       # @return [Hash] tool result
       # @raise [Errors::UnknownTool] when tool is not found
       def self.call(tool_name, args, context)
-        route_instrument(tool_name, args, context) ||
+        route_portfolio(tool_name, args, context) ||
+          route_instrument(tool_name, args, context) ||
           route_market(tool_name, args, context) ||
           route_option(tool_name, args, context) ||
           route_orders(tool_name, args, context) ||
           raise(Errors::UnknownTool, tool_name)
+      end
+
+      def self.route_portfolio(tool_name, _args, context)
+        return unless tool_name.start_with?("portfolio.")
+
+        action = tool_name.split(".").last
+        Tools::Portfolio.new(context).public_send(action)
       end
 
       def self.route_instrument(tool_name, args, context)

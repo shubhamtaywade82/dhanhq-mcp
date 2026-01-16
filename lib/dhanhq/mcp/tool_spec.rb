@@ -4,6 +4,47 @@ module Dhanhq
   module Mcp
     # MCP tool specifications
     TOOL_SPEC = [
+      # Portfolio tools (read-only)
+      {
+        name: "portfolio.holdings",
+        description: "Get current holdings",
+        input_schema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "portfolio.positions",
+        description: "Get current positions",
+        input_schema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "portfolio.funds",
+        description: "Get available funds",
+        input_schema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "portfolio.orders",
+        description: "Get order book",
+        input_schema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "portfolio.trades",
+        description: "Get trade book",
+        input_schema: {
+          type: "object",
+          properties: {},
+        },
+      },
       # Instrument tools
       {
         name: "instrument.find",

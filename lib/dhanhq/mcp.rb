@@ -22,6 +22,7 @@ require_relative "mcp/router"
 require_relative "mcp/server"
 
 require_relative "mcp/tools/base"
+require_relative "mcp/tools/portfolio"
 require_relative "mcp/tools/instrument"
 require_relative "mcp/tools/orders"
 require_relative "mcp/tools/options/expiries"
