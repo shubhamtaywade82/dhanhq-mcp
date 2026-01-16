@@ -2,6 +2,6 @@
 
 require "json"
 require "rack"
-# require "dhanhq-client" # TODO: Uncomment when dhanhq-client is available
+require "dhan_hq"
 
 require_relative "dhanhq/mcp"

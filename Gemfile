@@ -5,6 +5,9 @@ source "https://rubygems.org"
 # Specify your gem's dependencies in dhanhq-mcp.gemspec
 gemspec
 
+# DhanHQ client
+gem "DhanHQ", git: "https://github.com/shubhamtaywade82/dhanhq-client.git", branch: "main"
+
 gem "irb"
 gem "rake", "~> 13.0"
 

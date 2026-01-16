@@ -11,8 +11,15 @@ module Dhanhq
       # @param context [Context] execution context
       # @return [Hash] tool result
       # @raise [Errors::UnknownTool] when tool is not found
-      def self.call(tool_name, _args, _context)
-        raise Errors::UnknownTool, tool_name
+      def self.call(tool_name, args, context)
+        case tool_name
+        when "instrument.find"
+          Tools::Instrument.new(context).find(args)
+        when "instrument.info"
+          Tools::Instrument.new(context).info(args)
+        else
+          raise Errors::UnknownTool, tool_name
+        end
       end
     end
   end

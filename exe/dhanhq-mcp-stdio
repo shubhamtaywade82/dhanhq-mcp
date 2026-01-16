@@ -1,0 +1,34 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Support running from development checkout
+lib_path = File.expand_path("../lib", __dir__)
+$LOAD_PATH.unshift(lib_path) if File.directory?(lib_path) && !$LOAD_PATH.include?(lib_path)
+
+require "json"
+require "dhanhq-mcp"
+
+STDOUT.sync = true
+
+# TEMP client stub
+client = Object.new
+context = Dhanhq::Mcp::Context.new(client: client)
+
+while (line = STDIN.gets)
+  req = JSON.parse(line)
+
+  if req["method"] == "tools/list"
+    STDOUT.puts JSON.dump(result: Dhanhq::Mcp::TOOL_SPEC)
+  else
+    begin
+      result = Dhanhq::Mcp::Router.call(
+        req.dig("params", "name"),
+        req.dig("params", "arguments") || {},
+        context,
+      )
+      STDOUT.puts JSON.dump(result: result)
+    rescue StandardError => e
+      STDOUT.puts JSON.dump(error: { message: e.message })
+    end
+  end
+end

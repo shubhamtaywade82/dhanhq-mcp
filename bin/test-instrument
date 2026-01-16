@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Manual test script for CHECKPOINT 2
+# Usage: DHAN_TOKEN=your_token bin/test-instrument
+
+$LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
+
+require "dhanhq-mcp"
+
+# Configuration
+DhanHQ.configure do |config|
+  config.client_id = ENV.fetch("CLIENT_ID", "test")
+  config.access_token = ENV.fetch("DHAN_TOKEN") do
+    abort "ERROR: DHAN_TOKEN environment variable required"
+  end
+end
+
+# Create context
+client = DhanHQ::Client.new(access_token: ENV["DHAN_TOKEN"])
+context = Dhanhq::Mcp::Context.new(client: client)
+
+# Test instrument.find
+puts "Testing instrument.find..."
+result = Dhanhq::Mcp::Tools::Instrument.new(context).find(
+  "exchange_segment" => "IDX_I",
+  "symbol" => "NIFTY",
+)
+puts JSON.pretty_generate(result)
+
+# Test instrument.info
+puts "\nTesting instrument.info..."
+result = Dhanhq::Mcp::Tools::Instrument.new(context).info(
+  "exchange_segment" => "IDX_I",
+  "symbol" => "NIFTY",
+)
+puts JSON.pretty_generate(result)
+
+puts "\n✅ CHECKPOINT 2 PASSED"

@@ -22,3 +22,4 @@ require_relative "mcp/router"
 require_relative "mcp/server"
 
 require_relative "mcp/tools/base"
+require_relative "mcp/tools/instrument"
