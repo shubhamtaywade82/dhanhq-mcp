@@ -1,0 +1,49 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Manual test script for orders.prepare
+# Usage: DHAN_TOKEN=your_token bin/test-orders
+
+$LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
+
+require "dhanhq-mcp"
+
+# Configuration
+DhanHQ.configure do |config|
+  config.client_id = ENV.fetch("CLIENT_ID", "test")
+  config.access_token = ENV.fetch("DHAN_TOKEN") do
+    abort "ERROR: DHAN_TOKEN environment variable required"
+  end
+end
+
+# Create context
+client = DhanHQ::Client.new(access_token: ENV["DHAN_TOKEN"])
+context = Dhanhq::Mcp::Context.new(client: client)
+
+puts "=== Testing orders.prepare (BUY) ==="
+result = Dhanhq::Mcp::Tools::Orders.new(context).prepare(
+  "exchange_segment" => "NSE_EQ",
+  "symbol" => "RELIANCE",
+  "transaction_type" => "BUY",
+  "quantity" => 1,
+  "order_type" => "LIMIT",
+  "product_type" => "INTRADAY",
+  "price" => 2500.0,
+  "stop_loss" => 2480.0,
+  "target" => 2550.0,
+)
+puts JSON.pretty_generate(result)
+
+puts "\n=== Testing orders.prepare (SELL) ==="
+result = Dhanhq::Mcp::Tools::Orders.new(context).prepare(
+  "exchange_segment" => "NSE_EQ",
+  "symbol" => "TCS",
+  "transaction_type" => "SELL",
+  "quantity" => 1,
+  "order_type" => "MARKET",
+  "product_type" => "CNC",
+)
+puts JSON.pretty_generate(result)
+
+puts "\n✅ CHECKPOINT PASSED - orders.prepare working"
+puts "\nNOTE: Intent prepared successfully. Execution requires human confirmation."

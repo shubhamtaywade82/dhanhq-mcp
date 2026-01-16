@@ -158,6 +158,26 @@ module Dhanhq
           required: %w[exchange_segment symbol security_id option_type strike expiry quantity],
         },
       },
+      # Orders – equity/futures trade intent
+      {
+        name: "orders.prepare",
+        description: "Prepare equity/futures trade intent (no execution)",
+        input_schema: {
+          type: "object",
+          properties: {
+            exchange_segment: { type: "string" },
+            symbol: { type: "string" },
+            transaction_type: { enum: %w[BUY SELL] },
+            quantity: { type: "integer" },
+            order_type: { enum: %w[MARKET LIMIT] },
+            product_type: { enum: %w[INTRADAY CNC MARGIN] },
+            price: { type: "number" },
+            stop_loss: { type: "number" },
+            target: { type: "number" },
+          },
+          required: %w[exchange_segment symbol transaction_type quantity order_type product_type],
+        },
+      },
     ].freeze
   end
 end

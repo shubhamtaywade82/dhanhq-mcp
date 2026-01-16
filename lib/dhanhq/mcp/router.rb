@@ -15,6 +15,7 @@ module Dhanhq
         route_instrument(tool_name, args, context) ||
           route_market(tool_name, args, context) ||
           route_option(tool_name, args, context) ||
+          route_orders(tool_name, args, context) ||
           raise(Errors::UnknownTool, tool_name)
       end
 
@@ -43,6 +44,13 @@ module Dhanhq
           Tools::Options::Selector.new(context).call(args)
         when "option.prepare"
           Tools::Options::Prepare.new(context).call(args)
+        end
+      end
+
+      def self.route_orders(tool_name, args, context)
+        case tool_name
+        when "orders.prepare"
+          Tools::Orders.new(context).prepare(args)
         end
       end
     end
