@@ -48,7 +48,8 @@ module Dhanhq
       # Instrument tools
       {
         name: "instrument.find",
-        description: "Find tradable instrument with complete details (security_id, symbol, display_name, underlying_symbol, segment, instrument)",
+        description: "Find tradable instrument with complete details " \
+                     "(security_id, symbol, display_name, underlying_symbol, segment, instrument)",
         input_schema: {
           type: "object",
           properties: {

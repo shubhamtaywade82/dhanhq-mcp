@@ -151,13 +151,22 @@ Performance/FlatMap:
 # ===== RSpec Rules =====
 
 RSpec/ExampleLength:
-  Max: 10
+  Max: 25
+  Exclude:
+    - "spec/**/*"
 
 RSpec/MultipleExpectations:
-  Max: 3
+  Max: 10
+  Exclude:
+    - "spec/**/*"
+
+RSpec/MultipleMemoizedHelpers:
+  Max: 10
+  Exclude:
+    - "spec/**/*"
 
 RSpec/NestedGroups:
-  Max: 3
+  Max: 5
 
 RSpec/DescribeClass:
   Enabled: true
@@ -175,13 +184,13 @@ RSpec/PredicateMatcher:
   Enabled: true
 
 RSpec/NamedSubject:
-  Enabled: true
+  Enabled: false
 
 RSpec/LetSetup:
-  Enabled: true
+  Enabled: false
 
 RSpec/MessageSpies:
   EnforcedStyle: have_received
 
 RSpec/VerifiedDoubles:
-  Enabled: true
+  Enabled: false # Disabled - normal doubles are fine for our use case

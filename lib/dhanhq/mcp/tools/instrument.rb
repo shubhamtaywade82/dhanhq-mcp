@@ -11,18 +11,7 @@ module Dhanhq
         # @return [Hash] instrument info with all critical fields
         def find(args)
           inst = load(args)
-
-          {
-            security_id: inst.security_id,
-            symbol: inst.symbol_name,
-            display_name: inst.display_name,
-            underlying_symbol: inst.underlying_symbol,
-            exchange_segment: inst.exchange_segment,
-            segment: inst.segment,
-            instrument: inst.instrument,
-            instrument_type: inst.instrument_type,
-            expiry_flag: inst.expiry_flag,
-          }
+          build_instrument_response(inst)
         end
 
         # Get trading permissions and risk metadata
@@ -107,6 +96,16 @@ module Dhanhq
           return "NONE" unless inst.asm_gsm_flag == "Y"
 
           inst.asm_gsm_category
+        end
+
+        def build_instrument_response(inst)
+          {
+            security_id: inst.security_id, symbol: inst.symbol_name,
+            display_name: inst.display_name, underlying_symbol: inst.underlying_symbol,
+            exchange_segment: inst.exchange_segment, segment: inst.segment,
+            instrument: inst.instrument, instrument_type: inst.instrument_type,
+            expiry_flag: inst.expiry_flag
+          }
         end
       end
     end
