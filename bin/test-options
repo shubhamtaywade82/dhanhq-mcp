@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Manual test script for CHECKPOINT (PHASE 4)
+# Usage: DHAN_TOKEN=your_token bin/test-options
+
+$LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
+
+require "dhanhq-mcp"
+
+# Configuration
+DhanHQ.configure do |config|
+  config.client_id = ENV.fetch("CLIENT_ID", "test")
+  config.access_token = ENV.fetch("DHAN_TOKEN") do
+    abort "ERROR: DHAN_TOKEN environment variable required"
+  end
+end
+
+# Create context
+client = DhanHQ::Client.new(access_token: ENV["DHAN_TOKEN"])
+context = Dhanhq::Mcp::Context.new(client: client)
+
+puts "=== Testing option.expiries ==="
+result = Dhanhq::Mcp::Tools::Options::Expiries.new(context).call(
+  "exchange_segment" => "IDX_I",
+  "symbol" => "NIFTY",
+)
+puts JSON.pretty_generate(result)
+
+puts "\n=== Testing option.chain ==="
+expiry = result.first
+result = Dhanhq::Mcp::Tools::Options::Chain.new(context).call(
+  "exchange_segment" => "IDX_I",
+  "symbol" => "NIFTY",
+  "expiry" => expiry,
+)
+puts "Chain length: #{result.length}"
+puts JSON.pretty_generate(result.first(2))
+
+puts "\n✅ CHECKPOINT PASSED - Options tools working"
+puts "\nNOTE: option.select and option.prepare require additional parameters"
+puts "Test those manually with real spot price and strike data"

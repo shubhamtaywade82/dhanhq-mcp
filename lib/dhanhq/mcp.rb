@@ -23,3 +23,7 @@ require_relative "mcp/server"
 
 require_relative "mcp/tools/base"
 require_relative "mcp/tools/instrument"
+require_relative "mcp/tools/options/expiries"
+require_relative "mcp/tools/options/chain"
+require_relative "mcp/tools/options/selector"
+require_relative "mcp/tools/options/prepare"
