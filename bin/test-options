@@ -31,6 +31,8 @@ result = Dhanhq::Mcp::Tools::Options::Expiries.new(context).call(
 )
 puts JSON.pretty_generate(result)
 
+sleep 1  # Rate limit: 1 sec between API calls
+
 puts "\n=== Testing option.chain ==="
 expiry = result.first
 result = Dhanhq::Mcp::Tools::Options::Chain.new(context).call(

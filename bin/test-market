@@ -27,12 +27,16 @@ result = Dhanhq::Mcp::Tools::Instrument.new(context).ltp(
 )
 puts JSON.pretty_generate(result)
 
+sleep 1  # Rate limit: 1 sec between API calls
+
 puts "\n=== Testing instrument.quote ==="
 result = Dhanhq::Mcp::Tools::Instrument.new(context).quote(
   "exchange_segment" => "IDX_I",
   "symbol" => "NIFTY",
 )
 puts "Quote keys: #{result.keys.join(", ")}"
+
+sleep 1  # Rate limit: 1 sec between API calls
 
 puts "\n=== Testing instrument.ohlc ==="
 result = Dhanhq::Mcp::Tools::Instrument.new(context).ohlc(

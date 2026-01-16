@@ -23,7 +23,7 @@ RSpec.describe Dhanhq::Mcp::Tools::Orders do
     allow(DhanHQ::Models::Instrument).to receive(:find)
       .with("NSE_EQ", "INFY")
       .and_return(instrument)
-    allow(instrument).to receive_messages(symbol: "INFY", exchange_segment: "NSE_EQ", buy_sell_indicator: "A", asm_gsm_flag: "N", instrument_type: "EQUITY")
+    allow(instrument).to receive_messages(symbol_name: "INFY", exchange_segment: "NSE_EQ", buy_sell_indicator: "A", asm_gsm_flag: "N", instrument_type: "EQUITY")
   end
 
   describe "#prepare" do

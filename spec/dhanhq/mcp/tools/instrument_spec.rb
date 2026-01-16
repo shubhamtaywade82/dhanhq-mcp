@@ -24,7 +24,7 @@ RSpec.describe Dhanhq::Mcp::Tools::Instrument do
         segment: "E",
         instrument: "EQUITY",
         instrument_type: "EQUITY",
-        expiry_flag: "N"
+        expiry_flag: "N",
       )
 
       result = tool.find(args)

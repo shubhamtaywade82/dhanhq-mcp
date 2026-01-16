@@ -36,9 +36,13 @@ puts "=" * 60
 
 # Test all portfolio tools
 test_tool("portfolio.holdings")
+sleep 1  # Rate limit: 1 sec between API calls
 test_tool("portfolio.positions")
+sleep 1  # Rate limit: 1 sec between API calls
 test_tool("portfolio.funds")
+sleep 1  # Rate limit: 1 sec between API calls
 test_tool("portfolio.orders")
+sleep 1  # Rate limit: 1 sec between API calls
 test_tool("portfolio.trades")
 
 puts "\n" + "=" * 60

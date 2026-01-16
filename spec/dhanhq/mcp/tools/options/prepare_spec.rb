@@ -24,7 +24,7 @@ RSpec.describe Dhanhq::Mcp::Tools::Options::Prepare do
     allow(DhanHQ::Models::Instrument).to receive(:find)
       .with("IDX_I", "NIFTY")
       .and_return(instrument)
-    allow(instrument).to receive_messages(symbol: "NIFTY", buy_sell_indicator: "A", asm_gsm_flag: "N", instrument_type: "INDEX")
+    allow(instrument).to receive_messages(symbol_name: "NIFTY", buy_sell_indicator: "A", asm_gsm_flag: "N", instrument_type: "INDEX")
   end
 
   describe "#call" do

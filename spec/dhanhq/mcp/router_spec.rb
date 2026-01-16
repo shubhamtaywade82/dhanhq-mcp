@@ -76,7 +76,7 @@ RSpec.describe Dhanhq::Mcp::Router do
           segment: "E",
           instrument: "EQUITY",
           instrument_type: "EQUITY",
-          expiry_flag: "N"
+          expiry_flag: "N",
         )
 
         result = described_class.call("instrument.find", args, context)
@@ -185,7 +185,7 @@ RSpec.describe Dhanhq::Mcp::Router do
           "stop_loss" => 80,
           "target" => 150,
         )
-        allow(instrument).to receive_messages(symbol: "NIFTY", buy_sell_indicator: "A", asm_gsm_flag: "N", instrument_type: "INDEX")
+        allow(instrument).to receive_messages(symbol_name: "NIFTY", buy_sell_indicator: "A", asm_gsm_flag: "N", instrument_type: "INDEX")
 
         result = described_class.call("option.prepare", args_with_trade, context)
 
@@ -210,7 +210,7 @@ RSpec.describe Dhanhq::Mcp::Router do
         allow(DhanHQ::Models::Instrument).to receive(:find)
           .with("NSE_EQ", "INFY")
           .and_return(instrument)
-        allow(instrument).to receive_messages(symbol: "INFY", exchange_segment: "NSE_EQ", buy_sell_indicator: "A", asm_gsm_flag: "N", instrument_type: "EQUITY")
+        allow(instrument).to receive_messages(symbol_name: "INFY", exchange_segment: "NSE_EQ", buy_sell_indicator: "A", asm_gsm_flag: "N", instrument_type: "EQUITY")
       end
 
       it "routes orders.prepare" do

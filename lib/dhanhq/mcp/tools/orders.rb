@@ -116,7 +116,7 @@ module Dhanhq
         end
 
         def instrument_name(inst)
-          "#{inst.symbol} (#{inst.exchange_segment})"
+          "#{inst.symbol_name} (#{inst.exchange_segment})"
         end
 
         def confirmation_note

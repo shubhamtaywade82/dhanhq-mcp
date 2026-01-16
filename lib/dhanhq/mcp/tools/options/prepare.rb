@@ -91,7 +91,7 @@ module Dhanhq
           end
 
           def build_name(inst, args)
-            "#{inst.symbol} #{args["strike"]} #{args["option_type"]}"
+            "#{inst.symbol_name} #{args["strike"]} #{args["option_type"]}"
           end
         end
       end
