@@ -3,12 +3,18 @@
 
 $LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
 
+require "dotenv/load"
 require "json"
+require "dhan_hq"
 require "dhanhq-mcp"
 
 STDOUT.sync = true
 
-# TEMP client stub
+# Configure DhanHQ from environment
+DhanHQ.configure_with_env
+DhanHQ.logger.level = (ENV["DHAN_LOG_LEVEL"] || "INFO").upcase.then { |level| Logger.const_get(level) }
+
+# Create context (client not needed for MCP architecture)
 client = Object.new
 context = Dhanhq::Mcp::Context.new(client: client)
 

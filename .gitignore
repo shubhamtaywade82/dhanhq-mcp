@@ -10,6 +10,11 @@
 # rspec failure tracking
 .rspec_status
 
+# Environment variables (keep .env.example)
+.env
+.env.local
+.env.*.local
+
 # cursor IDE (keep .cursor/rules, ignore everything else)
 .cursor/*
 !.cursor/rules

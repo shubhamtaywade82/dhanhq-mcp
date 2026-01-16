@@ -8,13 +8,18 @@ module Dhanhq
         # Find tradable instrument
         #
         # @param args [Hash] exchange_segment and symbol
-        # @return [Hash] basic instrument info
+        # @return [Hash] instrument info with all critical fields
         def find(args)
           inst = load(args)
 
           {
-            symbol: inst.symbol,
+            security_id: inst.security_id,
+            symbol: inst.symbol_name,
+            display_name: inst.display_name,
+            underlying_symbol: inst.underlying_symbol,
             exchange_segment: inst.exchange_segment,
+            segment: inst.segment,
+            instrument: inst.instrument,
             instrument_type: inst.instrument_type,
             expiry_flag: inst.expiry_flag,
           }

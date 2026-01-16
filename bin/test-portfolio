@@ -1,0 +1,46 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Test script for portfolio tools
+
+require "json"
+
+def test_tool(name, args = {})
+  req = {
+    method: "tools/call",
+    params: {
+      name: name,
+      arguments: args
+    }
+  }
+
+  puts "\n📊 Testing: #{name}"
+  puts "   Args: #{args.empty? ? '(none)' : args.inspect}"
+
+  result = `echo '#{JSON.dump(req)}' | bin/dhanhq-mcp-stdio`
+  parsed = JSON.parse(result)
+
+  if parsed["error"]
+    puts "   ❌ Error: #{parsed['error']['message']}"
+  else
+    puts "   ✅ Success"
+    puts "   Result: #{parsed['result'].inspect[0..100]}..."
+  end
+rescue => e
+  puts "   ❌ Exception: #{e.message}"
+end
+
+puts "=" * 60
+puts "PORTFOLIO TOOLS TEST SUITE"
+puts "=" * 60
+
+# Test all portfolio tools
+test_tool("portfolio.holdings")
+test_tool("portfolio.positions")
+test_tool("portfolio.funds")
+test_tool("portfolio.orders")
+test_tool("portfolio.trades")
+
+puts "\n" + "=" * 60
+puts "✅ Portfolio tools test complete"
+puts "=" * 60

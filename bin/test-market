@@ -1,23 +1,23 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-# Manual test script for PHASE 3 market data tools
-# Usage: DHAN_TOKEN=your_token bin/test-market
+# Manual test script for market data tools
+# Usage: bin/test-market
+#
+# Requires: CLIENT_ID and ACCESS_TOKEN in .env file
 
 $LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
 
+require "dotenv/load"
+require "dhan_hq"
 require "dhanhq-mcp"
 
-# Configuration
-DhanHQ.configure do |config|
-  config.client_id = ENV.fetch("CLIENT_ID", "test")
-  config.access_token = ENV.fetch("DHAN_TOKEN") do
-    abort "ERROR: DHAN_TOKEN environment variable required"
-  end
-end
+# Configure DhanHQ from environment
+DhanHQ.configure_with_env
+DhanHQ.logger.level = (ENV["DHAN_LOG_LEVEL"] || "INFO").upcase.then { |level| Logger.const_get(level) }
 
 # Create context
-client = DhanHQ::Client.new(access_token: ENV["DHAN_TOKEN"])
+client = Object.new
 context = Dhanhq::Mcp::Context.new(client: client)
 
 puts "=== Testing instrument.ltp ==="

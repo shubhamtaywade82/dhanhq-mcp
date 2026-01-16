@@ -11,6 +11,7 @@ SimpleCov.start do
   # minimum_coverage line: 90, branch: 80
 end
 
+require "support/dhanhq_stub"
 require "dhanhq/mcp"
 
 RSpec.configure do |config|

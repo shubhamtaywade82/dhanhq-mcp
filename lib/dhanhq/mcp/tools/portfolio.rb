@@ -9,35 +9,35 @@ module Dhanhq
         #
         # @return [Array<Hash>] holdings data
         def holdings
-          context.client.holdings
+          DhanHQ::Models::Holding.all
         end
 
         # Get current positions
         #
         # @return [Array<Hash>] positions data
         def positions
-          context.client.positions
+          DhanHQ::Models::Position.all
         end
 
         # Get available funds
         #
         # @return [Hash] funds data
         def funds
-          context.client.funds
+          DhanHQ::Models::Funds.fetch
         end
 
         # Get order book
         #
         # @return [Array<Hash>] order book
         def orders
-          context.client.order_book
+          DhanHQ::Models::Order.all
         end
 
         # Get trade book
         #
         # @return [Array<Hash>] trade book
         def trades
-          context.client.trade_book
+          DhanHQ::Models::Trade.today
         end
       end
     end
