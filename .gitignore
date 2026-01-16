@@ -9,3 +9,7 @@
 
 # rspec failure tracking
 .rspec_status
+
+# cursor IDE (keep .cursor/rules, ignore everything else)
+.cursor/*
+!.cursor/rules

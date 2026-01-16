@@ -1,0 +1,10 @@
+--markup markdown
+--output-dir doc/yard
+--protected
+--private
+--no-private
+lib/**/*.rb
+-
+README.md
+CHANGELOG.md
+LICENSE.txt

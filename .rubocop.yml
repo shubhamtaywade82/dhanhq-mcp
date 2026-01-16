@@ -1,8 +1,181 @@
 AllCops:
   TargetRubyVersion: 3.2
+  NewCops: enable
+  Exclude:
+    - 'bin/**/*'
+    - 'vendor/**/*'
+    - 'node_modules/**/*'
+
+plugins:
+  - rubocop-performance
+  - rubocop-rake
+  - rubocop-rspec
+
+# ===== Layout & Formatting =====
+
+Layout/LineLength:
+  Max: 120
+  Exclude:
+    - 'spec/**/*'
+
+# ===== Naming Rules =====
+
+Naming/MethodName:
+  EnforcedStyle: snake_case
+
+Naming/VariableName:
+  EnforcedStyle: snake_case
+
+Naming/MethodParameterName:
+  MinNameLength: 3
+  AllowedNames:
+    - io
+    - id
+    - to
+    - by
+    - on
+    - in
+    - at
+    - db
+    - os
+
+# ===== Metrics Rules (enforce short, focused methods) =====
+
+Metrics/MethodLength:
+  Max: 10
+  CountComments: false
+  Exclude:
+    - 'spec/**/*'
+
+Metrics/ClassLength:
+  Max: 100
+  CountComments: false
+  Exclude:
+    - 'spec/**/*'
+
+Metrics/ModuleLength:
+  Max: 100
+  CountComments: false
+  Exclude:
+    - 'spec/**/*'
+
+Metrics/BlockLength:
+  Max: 25
+  Exclude:
+    - 'spec/**/*'
+    - '*.gemspec'
+    - 'Rakefile'
+
+Metrics/AbcSize:
+  Max: 15
+  Exclude:
+    - 'spec/**/*'
+
+Metrics/CyclomaticComplexity:
+  Max: 6
+
+Metrics/PerceivedComplexity:
+  Max: 7
+
+# ===== Style Rules (Clean Ruby) =====
 
 Style/StringLiterals:
   EnforcedStyle: double_quotes
 
 Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
+
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+Style/GuardClause:
+  Enabled: true
+  MinBodyLength: 1
+
+Style/NegatedIf:
+  Enabled: true
+
+Style/IfUnlessModifier:
+  Enabled: true
+
+Style/NumericPredicate:
+  Enabled: true
+
+Style/TernaryParentheses:
+  Enabled: true
+
+Style/EmptyMethod:
+  EnforcedStyle: expanded
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma
+
+# ===== Lint Rules =====
+
+Lint/UnusedMethodArgument:
+  Enabled: true
+
+Lint/UnusedBlockArgument:
+  Enabled: true
+
+Lint/UselessAssignment:
+  Enabled: true
+
+# ===== Performance Rules =====
+
+Performance/RedundantMerge:
+  Enabled: true
+
+Performance/StringReplacement:
+  Enabled: true
+
+Performance/FlatMap:
+  Enabled: true
+
+# ===== RSpec Rules =====
+
+RSpec/ExampleLength:
+  Max: 10
+
+RSpec/MultipleExpectations:
+  Max: 3
+
+RSpec/NestedGroups:
+  Max: 3
+
+RSpec/DescribeClass:
+  Enabled: true
+
+RSpec/ContextWording:
+  Enabled: true
+
+RSpec/ExpectActual:
+  Enabled: true
+
+RSpec/ImplicitExpect:
+  EnforcedStyle: is_expected
+
+RSpec/PredicateMatcher:
+  Enabled: true
+
+RSpec/NamedSubject:
+  Enabled: true
+
+RSpec/LetSetup:
+  Enabled: true
+
+RSpec/MessageSpies:
+  EnforcedStyle: have_received
+
+RSpec/VerifiedDoubles:
+  Enabled: true

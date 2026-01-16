@@ -9,5 +9,13 @@ gem "irb"
 gem "rake", "~> 13.0"
 
 gem "rspec", "~> 3.0"
+gem "simplecov", require: false
 
 gem "rubocop", "~> 1.21"
+gem "rubocop-performance", require: false
+gem "rubocop-rake", require: false
+gem "rubocop-rspec", require: false
+
+gem "rackup", require: false
+gem "webrick", require: false
+gem "yard", require: false

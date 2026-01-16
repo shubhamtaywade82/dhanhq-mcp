@@ -1,0 +1,254 @@
+# DhanHQ MCP - Cursor AI Rules
+
+## Project Overview
+This is a Ruby gem implementing the Model Context Protocol (MCP) for DhanHQ services.
+Target Ruby version: 3.2+
+
+## Core Principles
+
+### Clean Ruby Philosophy
+- Ruthlessly enforce clarity and simplicity
+- Code must be self-documenting
+- Optimize for human understanding, not cleverness
+- Prefer deletion over addition
+- Leave code better than you found it
+
+### Code Standards
+
+#### Naming Conventions
+- Method names must be verbs describing behavior (e.g., `calculate_total`, `fetch_user_data`)
+- Variable names must describe the data they contain (e.g., `user_count`, `active_sessions`)
+- Class names must describe purpose and role (e.g., `UserQuery`, `OrderPresenter`)
+- Minimum 3 characters for method parameters (exceptions: io, id, to, by, on, in, at, db, os)
+- No abbreviations, single-letter names, or ambiguous terms
+- No Hungarian notation or type encoding in names
+
+#### Method Design
+- Methods must do ONE thing only
+- Maximum 10 lines per method (enforced by RuboCop)
+- Use guard clauses at the top to validate input
+- Return a single, predictable type
+- No boolean flags that change method behavior
+- No returning hashes with mixed meanings
+
+#### Class Design
+- Single, clear responsibility per class
+- Maximum 100 lines per class (enforced by RuboCop)
+- Prefer composition over inheritance
+- Limit inheritance depth to 2 levels
+- Use private methods to hide internal behavior
+- No generic class names that invite misuse
+
+#### Conditional Logic
+- Prefer guard clauses over if/else chains
+- Avoid double negatives
+- Maximum nesting depth: 2 levels
+- Use Ruby built-in methods instead of manual branching
+- Eliminate conditionals with polymorphism when appropriate
+
+#### Complexity Limits (Enforced by RuboCop)
+- Cyclomatic complexity: max 6
+- Perceived complexity: max 7
+- ABC size: max 15
+- No methods longer than 10 lines (excluding specs)
+
+### Testing Standards (RSpec)
+
+#### Test Quality
+- Tests must be as readable as production code
+- Use RSpec contexts to group behavior
+- Test descriptions must describe behavior, not implementation
+- Explicitly name expected and actual values
+- Avoid complex setup that obscures test intent
+- One behavior per example
+- Maximum 10 lines per test example
+- Maximum 3 expectations per test
+
+#### Test Structure
+```ruby
+# Good
+RSpec.describe UserQuery do
+  describe "#active_users" do
+    context "when users exist" do
+      it "returns only active users" do
+        # clear, focused test
+      end
+    end
+
+    context "when no users exist" do
+      it "returns an empty collection" do
+        # clear, focused test
+      end
+    end
+  end
+end
+```
+
+#### RSpec Best Practices
+- Use `is_expected` style for implicit expectations
+- Use `have_received` for message spies
+- Use verified doubles only
+- Name subjects explicitly
+- Avoid `let!` setup that hides dependencies
+
+### Documentation Standards (YARD)
+
+#### Required Documentation
+- All public modules must have YARD documentation
+- All public classes must have YARD documentation
+- All public methods must have YARD documentation
+- Include `@param` for all parameters
+- Include `@return` for all return values
+- Include `@raise` for all exceptions
+- Include examples for complex methods using `@example`
+
+#### Documentation Example
+```ruby
+# Process user payment transaction
+#
+# @param user_id [Integer] the unique identifier for the user
+# @param amount [Float] the payment amount in dollars
+# @return [Transaction] the completed transaction object
+# @raise [InsufficientFunds] when user balance is too low
+# @raise [InvalidAmount] when amount is negative or zero
+# @example Process a payment
+#   service.process_payment(123, 50.00)
+#   #=> #<Transaction id=456 status="completed">
+def process_payment(user_id, amount)
+  # implementation
+end
+```
+
+### Code Style
+
+#### String Literals
+- Always use double quotes for strings
+- Use string interpolation instead of concatenation
+- Frozen string literal comment required in all files
+
+#### Collections
+- Use trailing commas in multi-line arrays, hashes, and arguments
+- Prefer Ruby built-in methods over manual iteration
+
+#### Comments
+- Comments indicate code smell - refactor instead
+- Extract logic into named methods instead of inline comments
+- Remove comments when code becomes self-explanatory
+- Only use comments for WHY, never WHAT or HOW
+
+### Quality Gates
+
+#### Before Committing
+1. Run `bundle exec rake` - must pass (includes specs + RuboCop)
+2. Run `bundle exec yard stats` - must be 100% documented
+3. Coverage must be ≥90% line, ≥80% branch
+4. No RuboCop offenses
+
+#### Refactoring Rules
+- No improvement is too small
+- Refactor continuously while making changes
+- Extract magic numbers into named constants
+- Encapsulate behavior behind intention-revealing method names
+- Reduce duplication aggressively
+
+### Anti-Patterns to Avoid
+
+#### Forbidden Practices
+- Long methods (>10 lines)
+- Deep nesting (>2 levels)
+- Boolean flags as method parameters
+- Mixed return types from same method
+- Generic names like `Manager`, `Handler`, `Helper`
+- God classes with multiple responsibilities
+- Monkey patching core Ruby classes
+- Global state and class variables
+- Metaprogramming without clear justification
+- Magic numbers and strings
+
+#### Code Smells to Flag
+- Methods with more than 3 parameters
+- Classes with more than 7 public methods
+- Conditional complexity beyond simple if/else
+- Duplication across 3+ locations
+- Comments explaining code behavior
+- Unclear variable names
+- Callback chains
+- Rescue without specific exception class
+
+### Development Workflow
+
+#### Adding New Features
+1. Write failing test first (TDD)
+2. Implement minimal code to pass test
+3. Refactor for clarity
+4. Add YARD documentation
+5. Run quality checks (`bundle exec rake`)
+6. Verify coverage meets thresholds
+
+#### Modifying Existing Code
+1. Understand existing tests
+2. Add test for new behavior
+3. Modify code following Clean Ruby principles
+4. Refactor surrounding code if needed
+5. Update documentation
+6. Run quality checks
+
+### Tools & Commands
+
+```bash
+# Run all checks (default task)
+bundle exec rake
+
+# Run tests with coverage
+bundle exec rake spec
+
+# Run RuboCop linter
+bundle exec rubocop
+
+# Auto-fix RuboCop issues (safe)
+bundle exec rubocop -a
+
+# Auto-fix all RuboCop issues (including unsafe)
+bundle exec rubocop -A
+
+# Generate documentation
+bundle exec rake doc
+
+# View documentation stats
+bundle exec yard stats
+
+# Start YARD documentation server
+bundle exec yard server
+```
+
+### Project-Specific Guidelines
+
+#### Module Structure
+- `Dhanhq::Mcp` is the main namespace
+- Keep flat module structure - avoid deep nesting
+- One class/module per file
+- File names match class names in snake_case
+
+#### Error Handling
+- Inherit from `Dhanhq::Mcp::Error` for gem-specific errors
+- Create specific error classes for different failure modes
+- Always document raised exceptions with `@raise`
+- Never rescue without specific exception class
+
+#### Dependencies
+- Minimize external dependencies
+- Document why each dependency is needed
+- Prefer stdlib over gems when reasonable
+- Keep Gemfile organized by purpose (dev, test, docs, lint)
+
+## Enforcement
+
+When I suggest code changes:
+1. I will call out unclear names immediately
+2. I will reject long methods without justification
+3. I will highlight hidden responsibilities
+4. I will flag unnecessary complexity
+5. I will demand refactoring instead of explanation
+6. I will prefer deletion over addition
+
+If you see me violating these rules, please remind me to follow the Clean Ruby principles.
