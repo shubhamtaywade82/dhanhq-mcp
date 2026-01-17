@@ -219,6 +219,27 @@ RSpec.describe Dhanhq::Mcp::Router do
 
         expect(result[:trade_type]).to eq("EQUITY_FUTURES")
       end
+
+      it "propagates risk violations" do
+        invalid_args = args.merge("quantity" => 0)
+
+        expect do
+          described_class.call("orders.prepare", invalid_args, context)
+        end.to raise_error(Dhanhq::Mcp::Errors::RiskViolation, "Quantity must be > 0")
+      end
+    end
+
+    context "with stream tools" do
+      let(:registry) { Dhanhq::Mcp::Stream::Registry.new }
+      let(:stream_context) do
+        Dhanhq::Mcp::Context.new(client: client, meta: { now: market_time, stream_registry: registry })
+      end
+
+      it "routes stream.status" do
+        result = described_class.call("stream.status", {}, stream_context)
+
+        expect(result).to eq([])
+      end
     end
   end
 end
