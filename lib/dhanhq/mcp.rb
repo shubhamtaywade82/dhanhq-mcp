@@ -18,6 +18,7 @@ require_relative "mcp/version"
 require_relative "mcp/errors"
 require_relative "mcp/context"
 require_relative "mcp/tool_spec"
+require_relative "mcp/validator"
 require_relative "mcp/router"
 require_relative "mcp/server"
 
