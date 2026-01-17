@@ -19,6 +19,7 @@ module Dhanhq
           route_market(tool_name, args, context) ||
           route_option(tool_name, args, context) ||
           route_orders(tool_name, args, context) ||
+          route_stream(tool_name, args, context) ||
           raise(Errors::UnknownTool, tool_name)
       end
 
@@ -61,6 +62,17 @@ module Dhanhq
         case tool_name
         when "orders.prepare"
           Tools::Orders.new(context).prepare(args)
+        end
+      end
+
+      def self.route_stream(tool_name, args, context)
+        case tool_name
+        when "stream.subscribe"
+          Tools::Stream::Subscribe.new(context).call(args)
+        when "stream.unsubscribe"
+          Tools::Stream::Unsubscribe.new(context).call(args)
+        when "stream.status"
+          Tools::Stream::Status.new(context).call(args)
         end
       end
     end

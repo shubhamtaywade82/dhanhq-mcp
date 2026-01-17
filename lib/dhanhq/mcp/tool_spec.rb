@@ -220,6 +220,35 @@ module Dhanhq
           required: %w[exchange_segment symbol transaction_type quantity order_type product_type],
         },
       },
+      # Streaming control
+      {
+        name: "stream.subscribe",
+        description: "Subscribe to live market data for an instrument",
+        input_schema: {
+          type: "object",
+          properties: {
+            exchange_segment: { type: "string" },
+            symbol: { type: "string" },
+            feed_type: { type: "string", enum: %w[LTP QUOTE FULL] },
+          },
+          required: %w[exchange_segment symbol feed_type],
+        },
+      },
+      {
+        name: "stream.unsubscribe",
+        description: "Unsubscribe from live market data for an instrument",
+        input_schema: {
+          type: "object",
+          properties: {
+            subscription_id: { type: "string" },
+          },
+          required: %w[subscription_id],
+        },
+      },
+      {
+        name: "stream.status",
+        description: "List active market data subscriptions",
+      },
     ].freeze
   end
 end
