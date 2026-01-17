@@ -2,7 +2,8 @@
 
 RSpec.describe Dhanhq::Mcp::Router do
   let(:client) { double("client") }
-  let(:context) { Dhanhq::Mcp::Context.new(client: client) }
+  let(:market_time) { Time.new(2024, 1, 2, 10, 0, 0, "+05:30") }
+  let(:context) { Dhanhq::Mcp::Context.new(client: client, meta: { now: market_time }) }
 
   describe ".call" do
     context "with unknown tool" do
@@ -181,7 +182,7 @@ RSpec.describe Dhanhq::Mcp::Router do
           "option_type" => "CE",
           "strike" => 21_000,
           "expiry" => "2024-01-25",
-          "quantity" => 50,
+          "quantity" => 10,
           "stop_loss" => 80,
           "target" => 150,
         )

@@ -2,7 +2,8 @@
 
 RSpec.describe Dhanhq::Mcp::Tools::Orders do
   let(:client) { double("client") }
-  let(:context) { Dhanhq::Mcp::Context.new(client: client) }
+  let(:market_time) { Time.new(2024, 1, 2, 10, 0, 0, "+05:30") }
+  let(:context) { Dhanhq::Mcp::Context.new(client: client, meta: { now: market_time }) }
   let(:tool) { described_class.new(context) }
   let(:instrument) { double("instrument") }
 
@@ -23,7 +24,14 @@ RSpec.describe Dhanhq::Mcp::Tools::Orders do
     allow(DhanHQ::Models::Instrument).to receive(:find)
       .with("NSE_EQ", "INFY")
       .and_return(instrument)
-    allow(instrument).to receive_messages(symbol_name: "INFY", exchange_segment: "NSE_EQ", buy_sell_indicator: "A", asm_gsm_flag: "N", instrument_type: "EQUITY")
+    allow(instrument).to receive_messages(
+      symbol_name: "INFY",
+      exchange_segment: "NSE_EQ",
+      buy_sell_indicator: "A",
+      asm_gsm_flag: "N",
+      asm_gsm_category: "ASM",
+      instrument_type: "EQUITY",
+    )
   end
 
   describe "#prepare" do
@@ -59,20 +67,11 @@ RSpec.describe Dhanhq::Mcp::Tools::Orders do
     context "when ASM/GSM is restricted" do
       it "raises RiskViolation" do
         allow(instrument).to receive(:asm_gsm_flag).and_return("Y")
+        allow(instrument).to receive(:asm_gsm_category).and_return("GSM")
 
         expect do
           tool.prepare(valid_args)
-        end.to raise_error(Dhanhq::Mcp::Errors::RiskViolation, "ASM/GSM restricted")
-      end
-    end
-
-    context "when instrument is INDEX type" do
-      it "raises RiskViolation" do
-        allow(instrument).to receive(:instrument_type).and_return("INDEX")
-
-        expect do
-          tool.prepare(valid_args)
-        end.to raise_error(Dhanhq::Mcp::Errors::RiskViolation, "Use option.prepare for index options")
+        end.to raise_error(Dhanhq::Mcp::Errors::RiskViolation, "ASM/GSM restricted instrument (GSM)")
       end
     end
 
@@ -82,7 +81,7 @@ RSpec.describe Dhanhq::Mcp::Tools::Orders do
 
         expect do
           tool.prepare(args)
-        end.to raise_error(Dhanhq::Mcp::Errors::RiskViolation, "Invalid quantity")
+        end.to raise_error(Dhanhq::Mcp::Errors::RiskViolation, "Quantity must be > 0")
       end
 
       it "raises RiskViolation for negative quantity" do
@@ -90,47 +89,37 @@ RSpec.describe Dhanhq::Mcp::Tools::Orders do
 
         expect do
           tool.prepare(args)
-        end.to raise_error(Dhanhq::Mcp::Errors::RiskViolation, "Invalid quantity")
+        end.to raise_error(Dhanhq::Mcp::Errors::RiskViolation, "Quantity must be > 0")
       end
     end
 
-    context "with invalid stop loss" do
+    context "when quantity exceeds limit" do
       it "raises RiskViolation" do
-        args = valid_args.merge("stop_loss" => -100)
+        args = valid_args.merge("quantity" => 11)
 
         expect do
           tool.prepare(args)
-        end.to raise_error(Dhanhq::Mcp::Errors::RiskViolation, "Invalid stop loss")
+        end.to raise_error(Dhanhq::Mcp::Errors::RiskViolation, "Quantity exceeds limit")
       end
     end
 
-    context "with invalid target" do
+    context "when notional exceeds limit" do
       it "raises RiskViolation" do
-        args = valid_args.merge("target" => -100)
+        args = valid_args.merge("price" => 10_001)
 
         expect do
           tool.prepare(args)
-        end.to raise_error(Dhanhq::Mcp::Errors::RiskViolation, "Invalid target")
+        end.to raise_error(Dhanhq::Mcp::Errors::RiskViolation, "Notional exceeds limit")
       end
     end
 
-    context "with bad risk-reward ratio for BUY" do
-      it "raises RiskViolation when target is below stop loss" do
-        args = valid_args.merge("transaction_type" => "BUY", "stop_loss" => 1500, "target" => 1400)
+    context "when order type is invalid" do
+      it "raises RiskViolation" do
+        args = valid_args.merge("order_type" => "STOP")
 
         expect do
           tool.prepare(args)
-        end.to raise_error(Dhanhq::Mcp::Errors::RiskViolation, "Bad risk-reward ratio")
-      end
-    end
-
-    context "with bad risk-reward ratio for SELL" do
-      it "raises RiskViolation when stop loss is below target" do
-        args = valid_args.merge("transaction_type" => "SELL", "stop_loss" => 1400, "target" => 1500)
-
-        expect do
-          tool.prepare(args)
-        end.to raise_error(Dhanhq::Mcp::Errors::RiskViolation, "Bad risk-reward ratio")
+        end.to raise_error(Dhanhq::Mcp::Errors::RiskViolation, "Invalid order type")
       end
     end
 
