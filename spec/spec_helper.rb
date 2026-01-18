@@ -11,12 +11,18 @@ SimpleCov.start do
   # minimum_coverage line: 90, branch: 80
 end
 
+require "bundler/setup"
+require "timecop"
+
 require "support/dhanhq_stub"
-require "dhanhq/mcp"
+require "support/fake_instrument"
+require "support/instrument_stub"
+require "dhanhq-mcp"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
+  config.order = :random
 
   # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!

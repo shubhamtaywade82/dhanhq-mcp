@@ -76,6 +76,24 @@ RSpec.describe Dhanhq::Mcp::Server do
         expect(parsed["error"]).not_to be_nil
         expect(parsed["error"]["message"]).to include("invalid.tool")
       end
+
+      it "returns error for invalid arguments" do
+        payload = {
+          "method" => "tools/call",
+          "params" => {
+            "name" => "instrument.find",
+            "arguments" => {},
+          },
+        }
+        env = build_rack_env(payload)
+
+        status, _, body = server.call(env)
+
+        expect(status).to eq(200)
+        parsed = JSON.parse(body.first)
+        expect(parsed["error"]).not_to be_nil
+        expect(parsed["error"]["message"]).to eq("Invalid arguments for instrument.find")
+      end
     end
 
     context "with unknown method" do

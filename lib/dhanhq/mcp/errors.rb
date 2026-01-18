@@ -11,7 +11,14 @@ module Dhanhq
       class UnknownTool < McpError; end
 
       # Raised when tool arguments are invalid
-      class InvalidArguments < McpError; end
+      class InvalidArguments < McpError
+        attr_reader :details
+
+        def initialize(message = "Invalid arguments", details: {})
+          @details = details
+          super(message)
+        end
+      end
 
       # Raised when operation violates risk rules
       class RiskViolation < McpError; end
