@@ -92,14 +92,14 @@ gem install dhanhq-mcp
 
 ### Environment Variables
 
-| Variable | Required | Description | Default |
-|----------|----------|-------------|---------|
-| `CLIENT_ID` | ✅ Yes | Your DhanHQ client ID | - |
-| `ACCESS_TOKEN` | ✅ Yes | Your DhanHQ API access token | - |
-| `DHAN_LOG_LEVEL` | ❌ No | Logging level (DEBUG, INFO, WARN, ERROR) | `INFO` |
-| `DHAN_BASE_URL` | ❌ No | API base URL override | `https://api.dhan.co` |
-| `DHAN_CONNECT_TIMEOUT` | ❌ No | Connection timeout in seconds | `10` |
-| `DHAN_READ_TIMEOUT` | ❌ No | Read timeout in seconds | `30` |
+| Variable               | Required | Description                              | Default               |
+| ---------------------- | -------- | ---------------------------------------- | --------------------- |
+| `CLIENT_ID`            | ✅ Yes    | Your DhanHQ client ID                    | -                     |
+| `ACCESS_TOKEN`         | ✅ Yes    | Your DhanHQ API access token             | -                     |
+| `DHAN_LOG_LEVEL`       | ❌ No     | Logging level (DEBUG, INFO, WARN, ERROR) | `INFO`                |
+| `DHAN_BASE_URL`        | ❌ No     | API base URL override                    | `https://api.dhan.co` |
+| `DHAN_CONNECT_TIMEOUT` | ❌ No     | Connection timeout in seconds            | `10`                  |
+| `DHAN_READ_TIMEOUT`    | ❌ No     | Read timeout in seconds                  | `30`                  |
 
 **Note:** The `.env` file is automatically ignored by git to keep your credentials safe.
 
@@ -107,24 +107,83 @@ gem install dhanhq-mcp
 
 ## 🚀 Usage
 
-### 1. STDIO Mode (Claude Desktop, Ollama)
+> **💡 Quick Start for Cursor Users**: Once configured, just ask naturally in chat! See [USAGE_IN_CURSOR.md](USAGE_IN_CURSOR.md) for examples.
+
+### 1. STDIO Mode (Cursor, Claude Desktop, Ollama)
 
 Best for AI assistants via STDIO protocol:
 
 ```bash
-export DHAN_ACCESS_TOKEN=your_token
-dhanhq-mcp-stdio
+export CLIENT_ID=your_client_id
+export ACCESS_TOKEN=your_access_token
+bundle exec ruby bin/dhanhq-mcp-stdio
 ```
 
-**Input:**
+**MCP Protocol (JSON-RPC 2.0):**
+
+The server implements the full MCP lifecycle. Example interaction:
+
+**1. Initialize:**
 ```json
-{"method":"tools/list"}
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}
 ```
 
-**Output:**
+**Response:**
 ```json
-{"result":[{"name":"portfolio.holdings","description":"Get current holdings"}, ...]}
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": "2024-11-05",
+    "capabilities": {"tools": {}},
+    "serverInfo": {
+      "name": "dhanhq-mcp",
+      "version": "0.1.0"
+    }
+  }
+}
 ```
+
+**2. Tools List:**
+```json
+{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}
+```
+
+**Response:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "tools": [
+      {"name":"portfolio.holdings","description":"Get current holdings",...},
+      ...
+    ]
+  }
+}
+```
+
+**3. Tool Call:**
+```json
+{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"portfolio.holdings","arguments":{}}}
+```
+
+**Response:**
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "result": [...]
+}
+```
+
+**⚠️ Cursor-Specific Notes:**
+
+- Cursor requires strict MCP protocol compliance
+- Use `bundle exec` to ensure proper gem loading
+- `.env` files are **not** auto-loaded by Cursor - set environment variables explicitly
+- All responses must include `jsonrpc`, `id`, and `result`/`error` fields
+- No output to STDOUT except JSON-RPC messages (logs go to STDERR)
 
 ### 2. Rails Integration
 
@@ -189,13 +248,13 @@ rackup -p 3000
 
 ### Portfolio Tools (5) - Read-Only
 
-| Tool | Description | Arguments |
-|------|-------------|-----------|
-| `portfolio.holdings` | Get current holdings | None |
-| `portfolio.positions` | Get current positions | None |
-| `portfolio.funds` | Get available funds | None |
-| `portfolio.orders` | Get order book history | None |
-| `portfolio.trades` | Get trade book history | None |
+| Tool                  | Description            | Arguments |
+| --------------------- | ---------------------- | --------- |
+| `portfolio.holdings`  | Get current holdings   | None      |
+| `portfolio.positions` | Get current positions  | None      |
+| `portfolio.funds`     | Get available funds    | None      |
+| `portfolio.orders`    | Get order book history | None      |
+| `portfolio.trades`    | Get trade book history | None      |
 
 **Example:**
 ```ruby
@@ -205,15 +264,15 @@ Dhanhq::Mcp::Router.call("portfolio.positions", {}, context)
 
 ### Instrument Tools (7) - Read-Only
 
-| Tool | Description | Arguments |
-|------|-------------|-----------|
-| `instrument.find` | Discover & validate instrument | `exchange_segment`, `symbol` |
-| `instrument.info` | Trading permissions & risk metadata | `exchange_segment`, `symbol` |
-| `instrument.ltp` | Last traded price | `exchange_segment`, `symbol` |
-| `instrument.quote` | Full market quote | `exchange_segment`, `symbol` |
-| `instrument.ohlc` | OHLC snapshot | `exchange_segment`, `symbol` |
-| `instrument.daily` | Daily historical candles | `exchange_segment`, `symbol`, `from`, `to` |
-| `instrument.intraday` | Intraday candles | `exchange_segment`, `symbol`, `from`, `to`, `interval` |
+| Tool                  | Description                         | Arguments                                              |
+| --------------------- | ----------------------------------- | ------------------------------------------------------ |
+| `instrument.find`     | Discover & validate instrument      | `exchange_segment`, `symbol`                           |
+| `instrument.info`     | Trading permissions & risk metadata | `exchange_segment`, `symbol`                           |
+| `instrument.ltp`      | Last traded price                   | `exchange_segment`, `symbol`                           |
+| `instrument.quote`    | Full market quote                   | `exchange_segment`, `symbol`                           |
+| `instrument.ohlc`     | OHLC snapshot                       | `exchange_segment`, `symbol`                           |
+| `instrument.daily`    | Daily historical candles            | `exchange_segment`, `symbol`, `from`, `to`             |
+| `instrument.intraday` | Intraday candles                    | `exchange_segment`, `symbol`, `from`, `to`, `interval` |
 
 **Example:**
 ```ruby
@@ -227,12 +286,12 @@ Dhanhq::Mcp::Router.call(
 
 ### Options Tools (4)
 
-| Tool | Description | Arguments | Type |
-|------|-------------|-----------|------|
-| `option.expiries` | Available option expiries | `exchange_segment`, `symbol` | Read-Only |
-| `option.chain` | Option chain data | `exchange_segment`, `symbol`, `expiry` | Read-Only |
-| `option.select` | Rule-based strike selection | `exchange_segment`, `symbol`, `expiry`, `direction`, `spot_price`, etc. | Read-Only |
-| `option.prepare` | Prepare OPTIONS BUY intent | `exchange_segment`, `symbol`, `security_id`, `option_type`, `strike`, `expiry`, `quantity`, `stop_loss`, `target` | Intent-Only |
+| Tool              | Description                 | Arguments                                                                                                         | Type        |
+| ----------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------- |
+| `option.expiries` | Available option expiries   | `exchange_segment`, `symbol`                                                                                      | Read-Only   |
+| `option.chain`    | Option chain data           | `exchange_segment`, `symbol`, `expiry`                                                                            | Read-Only   |
+| `option.select`   | Rule-based strike selection | `exchange_segment`, `symbol`, `expiry`, `direction`, `spot_price`, etc.                                           | Read-Only   |
+| `option.prepare`  | Prepare OPTIONS BUY intent  | `exchange_segment`, `symbol`, `security_id`, `option_type`, `strike`, `expiry`, `quantity`, `stop_loss`, `target` | Intent-Only |
 
 **Example:**
 ```ruby
@@ -290,8 +349,8 @@ Dhanhq::Mcp::Router.call(
 
 ### Orders Tools (1) - Intent-Only
 
-| Tool | Description | Arguments |
-|------|-------------|-----------|
+| Tool             | Description                         | Arguments                                                                                                                                                                                      |
+| ---------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `orders.prepare` | Prepare EQUITY/FUTURES trade intent | `exchange_segment`, `symbol`, `transaction_type`, `product_type`, `order_type`, `quantity`, `price` (optional), `trigger_price` (optional), `amo`, `bo_flag`, `co_flag`, `stop_loss`, `target` |
 
 **Example:**

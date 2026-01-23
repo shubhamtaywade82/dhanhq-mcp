@@ -1,0 +1,333 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Technical Analysis Script for NIFTY
+# Usage: bin/analyze-nifty [days]
+#
+# Requires: CLIENT_ID and ACCESS_TOKEN in .env file
+# Default: Analyzes last 200 days of data
+
+$LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
+
+require "dotenv/load"
+require "dhan_hq"
+require "dhanhq-mcp"
+require "date"
+require "json"
+
+# Configure DhanHQ from environment
+DhanHQ.configure_with_env
+DhanHQ.logger.level = (ENV["DHAN_LOG_LEVEL"] || "WARN").upcase.then { |level| Logger.const_get(level) }
+
+# Technical Analysis Calculator
+class TechnicalAnalysis
+  def initialize(candles)
+    @candles = candles.sort_by { |c| parse_date(c) }
+  end
+
+  def simple_moving_average(period)
+    return [] if @candles.length < period
+
+    sma = []
+    (period - 1...@candles.length).each do |i|
+      sum = @candles[(i - period + 1)..i].sum { |c| close_price(c) }
+      sma << (sum.to_f / period)
+    end
+    sma
+  end
+
+  def exponential_moving_average(period)
+    return [] if @candles.length < period
+
+    multiplier = 2.0 / (period + 1)
+    ema = []
+    first_sma = @candles[0...period].sum { |c| close_price(c) } / period.to_f
+    ema << first_sma
+
+    @candles[period..].each do |candle|
+      current_ema = (close_price(candle) - ema.last) * multiplier + ema.last
+      ema << current_ema
+    end
+    ema
+  end
+
+  def rsi(period = 14)
+    return [] if @candles.length < period + 1
+
+    gains = []
+    losses = []
+
+    (1...@candles.length).each do |i|
+      change = close_price(@candles[i]) - close_price(@candles[i - 1])
+      gains << (change.positive? ? change : 0)
+      losses << (change.negative? ? -change : 0)
+    end
+
+    rsi_values = []
+    (period - 1...gains.length).each do |i|
+      avg_gain = gains[(i - period + 1)..i].sum / period.to_f
+      avg_loss = losses[(i - period + 1)..i].sum / period.to_f
+
+      next if avg_loss.zero?
+
+      rs = avg_gain / avg_loss
+      rsi = 100 - (100 / (1 + rs))
+      rsi_values << rsi
+    end
+    rsi_values
+  end
+
+  def macd(fast = 12, slow = 26, signal = 9)
+    return [] if @candles.length < slow
+
+    fast_ema = exponential_moving_average(fast)
+    slow_ema = exponential_moving_average(slow)
+
+    return [] if fast_ema.length < slow_ema.length
+
+    offset = fast_ema.length - slow_ema.length
+    macd_line = fast_ema[offset..].zip(slow_ema).map { |f, s| f - s }
+
+    return [] if macd_line.length < signal
+
+    signal_line = calculate_ema_for_array(macd_line, signal)
+    histogram = macd_line[signal - 1..].zip(signal_line).map { |m, s| m - s }
+
+    { macd: macd_line, signal: signal_line, histogram: histogram }
+  end
+
+  def support_resistance
+    highs = @candles.map { |c| high_price(c) }
+    lows = @candles.map { |c| low_price(c) }
+
+    resistance = highs.max
+    support = lows.min
+
+    recent_high = highs[-20..].max
+    recent_low = lows[-20..].min
+
+    { support: support, resistance: resistance, recent_support: recent_low, recent_resistance: recent_high }
+  end
+
+  def trend_analysis
+    return "INSUFFICIENT_DATA" if @candles.length < 50
+
+    sma_20 = simple_moving_average(20)
+    sma_50 = simple_moving_average(50)
+
+    return "INSUFFICIENT_DATA" if sma_20.empty? || sma_50.empty?
+
+    current_price = close_price(@candles.last)
+    current_sma20 = sma_20.last
+    current_sma50 = sma_50.last
+
+    trend = if current_price > current_sma20 && current_sma20 > current_sma50
+              "BULLISH"
+            elsif current_price < current_sma20 && current_sma20 < current_sma50
+              "BEARISH"
+            else
+              "NEUTRAL"
+            end
+
+    { trend: trend, price_vs_sma20: current_price - current_sma20, price_vs_sma50: current_price - current_sma50 }
+  end
+
+  def current_price
+    close_price(@candles.last)
+  end
+
+  def price_change_pct
+    return 0 if @candles.length < 2
+
+    first = close_price(@candles.first)
+    last = close_price(@candles.last)
+    ((last - first) / first * 100).round(2)
+  end
+
+  private
+
+  def close_price(candle)
+    candle[:close] || candle["close"] || 0
+  end
+
+  def high_price(candle)
+    candle[:high] || candle["high"] || 0
+  end
+
+  def low_price(candle)
+    candle[:low] || candle["low"] || 0
+  end
+
+  def parse_date(candle)
+    date_str = candle[:date] || candle["date"] || candle[:timestamp] || candle["timestamp"]
+    Date.parse(date_str.to_s)
+  rescue StandardError
+    Date.today
+  end
+
+  def calculate_ema_for_array(values, period)
+    return [] if values.length < period
+
+    multiplier = 2.0 / (period + 1)
+    ema = []
+    first_sma = values[0...period].sum / period.to_f
+    ema << first_sma
+
+    values[period..].each do |value|
+      current_ema = (value - ema.last) * multiplier + ema.last
+      ema << current_ema
+    end
+    ema
+  end
+end
+
+# Main execution
+def main
+  days = ARGV[0]&.to_i || 200
+  to_date = Date.today
+  from_date = to_date - days
+
+  puts "📊 NIFTY Technical Analysis"
+  puts "=" * 60
+  puts "Date Range: #{from_date} to #{to_date} (#{days} days)"
+  puts
+
+  # Create context (tools use DhanHQ global config, not context.client)
+  client = Object.new
+  context = Dhanhq::Mcp::Context.new(client: client)
+  instrument_tool = Dhanhq::Mcp::Tools::Instrument.new(context)
+
+  # Fetch current price
+  puts "Fetching current market data..."
+  ltp_data = instrument_tool.ltp(
+    "exchange_segment" => "IDX_I",
+    "symbol" => "NIFTY",
+  )
+  current_ltp = ltp_data[:ltp] || ltp_data["ltp"]
+  puts "Current LTP: #{current_ltp}"
+  puts
+
+  sleep 1 # Rate limit
+
+  # Fetch historical data
+  puts "Fetching historical data..."
+  daily_data = instrument_tool.daily(
+    "exchange_segment" => "IDX_I",
+    "symbol" => "NIFTY",
+    "from" => from_date.to_s,
+    "to" => to_date.to_s,
+  )
+
+  if daily_data.nil? || daily_data.empty?
+    puts "❌ Error: No historical data received"
+    exit 1
+  end
+
+  puts "Received #{daily_data.length} candles"
+  puts
+
+  # Perform technical analysis
+  analyzer = TechnicalAnalysis.new(daily_data)
+
+  puts "📈 TECHNICAL INDICATORS"
+  puts "-" * 60
+
+  # Current Price
+  current_price = analyzer.current_price
+  price_change = analyzer.price_change_pct
+  puts "Current Price: #{current_price.round(2)}"
+  puts "Period Change: #{price_change}%"
+  puts
+
+  # Moving Averages
+  sma_20 = analyzer.simple_moving_average(20)
+  sma_50 = analyzer.simple_moving_average(50)
+  ema_12 = analyzer.exponential_moving_average(12)
+  ema_26 = analyzer.exponential_moving_average(26)
+
+  puts "Moving Averages:"
+  puts "  SMA(20): #{sma_20.last.round(2)}" unless sma_20.empty?
+  puts "  SMA(50): #{sma_50.last.round(2)}" unless sma_50.empty?
+  puts "  EMA(12): #{ema_12.last.round(2)}" unless ema_12.empty?
+  puts "  EMA(26): #{ema_26.last.round(2)}" unless ema_26.empty?
+  puts
+
+  # RSI
+  rsi_values = analyzer.rsi(14)
+  current_rsi = rsi_values.last
+  puts "RSI(14): #{current_rsi.round(2)}" unless rsi_values.empty?
+  if current_rsi
+    rsi_signal = if current_rsi > 70
+                   "OVERSOLD (Bearish)"
+                 elsif current_rsi < 30
+                   "OVERSOLD (Bullish)"
+                 else
+                   "NEUTRAL"
+                 end
+    puts "  Signal: #{rsi_signal}"
+  end
+  puts
+
+  # MACD
+  macd_data = analyzer.macd
+  unless macd_data.empty?
+    macd_line = macd_data[:macd].last
+    signal_line = macd_data[:signal].last
+    histogram = macd_data[:histogram].last
+
+    puts "MACD:"
+    puts "  MACD Line: #{macd_line.round(2)}"
+    puts "  Signal Line: #{signal_line.round(2)}"
+    puts "  Histogram: #{histogram.round(2)}"
+
+    macd_signal = if histogram.positive?
+                    "BULLISH (Above signal)"
+                  else
+                    "BEARISH (Below signal)"
+                  end
+    puts "  Signal: #{macd_signal}"
+    puts
+  end
+
+  # Support/Resistance
+  sr = analyzer.support_resistance
+  puts "Support & Resistance:"
+  puts "  Support: #{sr[:support].round(2)}"
+  puts "  Resistance: #{sr[:resistance].round(2)}"
+  puts "  Recent Support (20 days): #{sr[:recent_support].round(2)}"
+  puts "  Recent Resistance (20 days): #{sr[:recent_resistance].round(2)}"
+  puts
+
+  # Trend Analysis
+  trend = analyzer.trend_analysis
+  unless trend == "INSUFFICIENT_DATA"
+    puts "Trend Analysis:"
+    puts "  Trend: #{trend[:trend]}"
+    puts "  Price vs SMA(20): #{trend[:price_vs_sma20].round(2)}"
+    puts "  Price vs SMA(50): #{trend[:price_vs_sma50].round(2)}"
+    puts
+  end
+
+  # Summary
+  puts "📊 SUMMARY"
+  puts "-" * 60
+
+  signals = []
+  signals << "BULLISH" if trend != "INSUFFICIENT_DATA" && trend[:trend] == "BULLISH"
+  signals << "BEARISH" if trend != "INSUFFICIENT_DATA" && trend[:trend] == "BEARISH"
+  signals << "RSI Overbought" if current_rsi && current_rsi > 70
+  signals << "RSI Oversold" if current_rsi && current_rsi < 30
+  signals << "MACD Bullish" if !macd_data.empty? && macd_data[:histogram].last.positive?
+  signals << "MACD Bearish" if !macd_data.empty? && macd_data[:histogram].last.negative?
+
+  if signals.empty?
+    puts "Overall Signal: NEUTRAL"
+  else
+    puts "Overall Signal: #{signals.join(", ")}"
+  end
+
+  puts
+  puts "✅ Analysis Complete"
+end
+
+main if __FILE__ == $PROGRAM_NAME

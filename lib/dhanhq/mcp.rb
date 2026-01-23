@@ -20,6 +20,7 @@ require_relative "mcp/context"
 require_relative "mcp/tool_spec"
 require_relative "mcp/router"
 require_relative "mcp/server"
+require_relative "mcp/stdio_server"
 
 require_relative "mcp/tools/base"
 require_relative "mcp/tools/portfolio"

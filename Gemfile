@@ -22,3 +22,4 @@ gem "rubocop-rspec", require: false
 gem "rackup", require: false
 gem "webrick", require: false
 gem "yard", require: false
+gem "dotenv", require: false

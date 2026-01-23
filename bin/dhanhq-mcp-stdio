@@ -4,35 +4,17 @@
 $LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
 
 require "dotenv/load"
-require "json"
 require "dhan_hq"
 require "dhanhq-mcp"
-
-STDOUT.sync = true
 
 # Configure DhanHQ from environment
 DhanHQ.configure_with_env
 DhanHQ.logger.level = (ENV["DHAN_LOG_LEVEL"] || "INFO").upcase.then { |level| Logger.const_get(level) }
 
-# Create context (client not needed for MCP architecture)
+# Create context (tools use DhanHQ global config, not context.client)
 client = Object.new
 context = Dhanhq::Mcp::Context.new(client: client)
 
-while (line = STDIN.gets)
-  req = JSON.parse(line)
-
-  if req["method"] == "tools/list"
-    STDOUT.puts JSON.dump(result: Dhanhq::Mcp::TOOL_SPEC)
-  else
-    begin
-      result = Dhanhq::Mcp::Router.call(
-        req.dig("params", "name"),
-        req.dig("params", "arguments") || {},
-        context,
-      )
-      STDOUT.puts JSON.dump(result: result)
-    rescue StandardError => e
-      STDOUT.puts JSON.dump(error: { message: e.message })
-    end
-  end
-end
+# Start MCP STDIO server - blocks forever
+server = Dhanhq::Mcp::StdioServer.new(context: context)
+server.run
