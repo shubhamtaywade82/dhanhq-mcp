@@ -1,0 +1,33 @@
+# frozen_string_literal: true
+
+module Dhanhq
+  module Mcp
+    module Risk
+      module Checks
+        class Quantity
+          MAX_QUANTITY = 10
+          MAX_NOTIONAL = 100_000
+
+          def self.run!(args:, **_unused)
+            quantity = args["quantity"].to_i
+            raise Errors::RiskViolation, "Quantity must be > 0" unless quantity.positive?
+            raise Errors::RiskViolation, "Quantity exceeds limit" if quantity > MAX_QUANTITY
+
+            enforce_notional_limit!(quantity, args["price"])
+          end
+
+          def self.enforce_notional_limit!(quantity, price)
+            return unless price
+
+            notional = quantity * price.to_f
+            return if notional <= MAX_NOTIONAL
+
+            raise Errors::RiskViolation, "Notional exceeds limit"
+          end
+
+          private_class_method :enforce_notional_limit!
+        end
+      end
+    end
+  end
+end

@@ -670,6 +670,7 @@ WantedBy=multi-user.target
 ## 📚 Resources
 
 - **DhanHQ Client Gem**: [dhanhq-client](https://github.com/shubhamtaywade82/dhanhq-client)
+- **Recommendation Response Schema**: [RECOMMENDATION_SCHEMA.md](RECOMMENDATION_SCHEMA.md)
 - **Model Context Protocol**: [MCP Specification](https://modelcontextprotocol.io/)
 - **DhanHQ API Docs**: [https://dhanhq.co/docs/v2/](https://dhanhq.co/docs/v2/)
 
