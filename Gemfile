@@ -11,7 +11,6 @@ gem "DhanHQ", git: "https://github.com/shubhamtaywade82/dhanhq-client.git", bran
 gem "irb"
 gem "rake", "~> 13.0"
 
-gem "rspec", "~> 3.0"
 gem "simplecov", require: false
 
 gem "rubocop", "~> 1.21"
@@ -23,3 +22,8 @@ gem "rackup", require: false
 gem "webrick", require: false
 gem "yard", require: false
 gem "dotenv", require: false
+
+group :test do
+  gem "rspec"
+  gem "timecop"
+end

@@ -2,7 +2,8 @@
 
 RSpec.describe Dhanhq::Mcp::Router do
   let(:client) { double("client") }
-  let(:context) { Dhanhq::Mcp::Context.new(client: client) }
+  let(:market_time) { Time.new(2024, 1, 2, 10, 0, 0, "+05:30") }
+  let(:context) { Dhanhq::Mcp::Context.new(client: client, meta: { now: market_time }) }
 
   describe ".call" do
     context "with unknown tool" do
@@ -181,7 +182,7 @@ RSpec.describe Dhanhq::Mcp::Router do
           "option_type" => "CE",
           "strike" => 21_000,
           "expiry" => "2024-01-25",
-          "quantity" => 50,
+          "quantity" => 10,
           "stop_loss" => 80,
           "target" => 150,
         )
@@ -217,6 +218,27 @@ RSpec.describe Dhanhq::Mcp::Router do
         result = described_class.call("orders.prepare", args, context)
 
         expect(result[:trade_type]).to eq("EQUITY_FUTURES")
+      end
+
+      it "propagates risk violations" do
+        invalid_args = args.merge("quantity" => 0)
+
+        expect do
+          described_class.call("orders.prepare", invalid_args, context)
+        end.to raise_error(Dhanhq::Mcp::Errors::RiskViolation, "Quantity must be > 0")
+      end
+    end
+
+    context "with stream tools" do
+      let(:registry) { Dhanhq::Mcp::Stream::Registry.new }
+      let(:stream_context) do
+        Dhanhq::Mcp::Context.new(client: client, meta: { now: market_time, stream_registry: registry })
+      end
+
+      it "routes stream.status" do
+        result = described_class.call("stream.status", {}, stream_context)
+
+        expect(result).to eq([])
       end
     end
   end
