@@ -14,10 +14,10 @@ end
 require "bundler/setup"
 require "timecop"
 
+require "dhanhq-mcp"
 require "support/dhanhq_stub"
 require "support/fake_instrument"
 require "support/instrument_stub"
-require "dhanhq-mcp"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

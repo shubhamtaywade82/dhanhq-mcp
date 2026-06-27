@@ -66,8 +66,7 @@ RSpec.describe Dhanhq::Mcp::Tools::Orders do
 
     context "when ASM/GSM is restricted" do
       it "raises RiskViolation" do
-        allow(instrument).to receive(:asm_gsm_flag).and_return("Y")
-        allow(instrument).to receive(:asm_gsm_category).and_return("GSM")
+        allow(instrument).to receive_messages(asm_gsm_flag: "Y", asm_gsm_category: "GSM")
 
         expect do
           tool.prepare(valid_args)

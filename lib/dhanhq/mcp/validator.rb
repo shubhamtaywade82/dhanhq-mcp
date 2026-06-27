@@ -66,7 +66,7 @@ module Dhanhq
         return unless allowed
         return if allowed.include?(value)
 
-        errors[key] = "must be one of #{allowed.join(', ')}"
+        errors[key] = "must be one of #{allowed.join(", ")}"
       end
 
       def self.add_unknown_key_errors(schema, args, errors)
@@ -105,7 +105,7 @@ module Dhanhq
         when "string" then value.is_a?(String)
         when "integer" then value.is_a?(Integer)
         when "number" then value.is_a?(Numeric)
-        when "boolean" then value == true || value == false
+        when "boolean" then [true, false].include?(value)
         when Array
           expected.any? { |type| type_valid?(value, type) }
         else
