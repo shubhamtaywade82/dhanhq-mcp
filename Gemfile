@@ -6,7 +6,7 @@ source "https://rubygems.org"
 gemspec
 
 # DhanHQ client
-gem "DhanHQ", git: "https://github.com/shubhamtaywade82/dhanhq-client.git", branch: "main"
+gem "DhanHQ"
 
 gem "irb"
 gem "rake", "~> 13.0"
