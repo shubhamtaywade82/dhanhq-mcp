@@ -44,19 +44,13 @@ instrument.quote
 
 ### Safety by Design
 
-`dhanhq-mcp` ships as a full MCP adapter, but its default runtime policy is
-safe:
+`dhanhq-mcp` ships as a full MCP adapter, but its default runtime policy is safe:
 
-- **Read-only tools**: portfolio, instrument, market data, options, statements,
-  account profile, and status-style operations.
-- **Intent-only tools**: order/option preparation and margin calculations that
-  return previews without placing broker orders.
-- **Write tools**: order placement/modification/cancellation, super orders,
-  conditional triggers, kill-switch mutations, P&L control changes, eDIS forms,
-  position conversion/exits, and IP mutations.
+- **Read-only tools**: portfolio, instrument, market data, options, statements, account profile, and status-style operations.
+- **Intent-only tools**: order/option preparation, margin calculations, and advanced options analysis that return previews without placing broker orders.
+- **Write tools**: order placement/modification/cancellation, super orders, conditional triggers, kill-switch mutations, P&L control changes, eDIS forms, position conversion/exits, and IP mutations.
 
-Write tools are present in `tools/list` for capability discovery, but execution
-is blocked unless all of the following are true:
+Write tools are present in `tools/list` for capability discovery, but execution is blocked unless all of the following are true:
 
 ```bash
 export DHANHQ_MCP_ENABLE_WRITES=true
@@ -64,8 +58,7 @@ export LIVE_TRADING=true
 export DHANHQ_MCP_SCOPES=read_only,intent_only,write
 ```
 
-This means the default STDIO server can analyze markets and prepare trade
-intents, but it cannot place, modify, or cancel live orders.
+This means the default STDIO server can analyze markets and prepare trade intents, but it cannot place, modify, or cancel live orders.
 
 ---
 
@@ -171,32 +164,9 @@ The server implements the full MCP lifecycle. Example interaction:
 {"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}
 ```
 
-**Response:**
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 2,
-  "result": {
-    "tools": [
-      {"name":"portfolio.holdings","description":"Get current holdings",...},
-      ...
-    ]
-  }
-}
-```
-
 **3. Tool Call:**
 ```json
 {"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"portfolio.holdings","arguments":{}}}
-```
-
-**Response:**
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 3,
-  "result": [...]
-}
 ```
 
 **⚠️ Cursor-Specific Notes:**
@@ -250,7 +220,6 @@ Run as Rack application:
 require 'dhanhq-mcp'
 
 client = DhanHQ::Client.new(access_token: ENV['DHAN_ACCESS_TOKEN'])
-
 app = Dhanhq::Mcp::Server.new(
   context_provider: ->(req) {
     Dhanhq::Mcp::Context.new(client: client)
@@ -266,17 +235,17 @@ rackup -p 3000
 
 ---
 
-## 🔧 Complete Tool Inventory (17 Tools)
+## 🔧 Complete Tool Inventory (67 Tools)
 
 ### Portfolio Tools (5) - Read-Only
 
-| Tool                  | Description            | Arguments |
-| --------------------- | ---------------------- | --------- |
-| `portfolio.holdings`  | Get current holdings   | None      |
-| `portfolio.positions` | Get current positions  | None      |
-| `portfolio.funds`     | Get available funds    | None      |
-| `portfolio.orders`    | Get order book history | None      |
-| `portfolio.trades`    | Get trade book history | None      |
+| Tool                  | Description            |
+| --------------------- | ---------------------- |
+| `portfolio.holdings`  | Get current holdings   |
+| `portfolio.positions` | Get current positions  |
+| `portfolio.funds`     | Get available funds    |
+| `portfolio.orders`    | Get order book history |
+| `portfolio.trades`    | Get trade book history |
 
 **Example:**
 ```ruby
@@ -286,15 +255,15 @@ Dhanhq::Mcp::Router.call("portfolio.positions", {}, context)
 
 ### Instrument Tools (7) - Read-Only
 
-| Tool                  | Description                         | Arguments                                              |
-| --------------------- | ----------------------------------- | ------------------------------------------------------ |
-| `instrument.find`     | Discover & validate instrument      | `exchange_segment`, `symbol`                           |
-| `instrument.info`     | Trading permissions & risk metadata | `exchange_segment`, `symbol`                           |
-| `instrument.ltp`      | Last traded price                   | `exchange_segment`, `symbol`                           |
-| `instrument.quote`    | Full market quote                   | `exchange_segment`, `symbol`                           |
-| `instrument.ohlc`     | OHLC snapshot                       | `exchange_segment`, `symbol`                           |
-| `instrument.daily`    | Daily historical candles            | `exchange_segment`, `symbol`, `from`, `to`             |
-| `instrument.intraday` | Intraday candles                    | `exchange_segment`, `symbol`, `from`, `to`, `interval` |
+| Tool                  | Description                         |
+| --------------------- | ----------------------------------- |
+| `instrument.find`     | Discover & validate instrument      |
+| `instrument.info`     | Trading permissions & risk metadata |
+| `instrument.ltp`      | Last traded price                   |
+| `instrument.quote`    | Full market quote                   |
+| `instrument.ohlc`     | OHLC snapshot                       |
+| `instrument.daily`    | Daily historical candles            |
+| `instrument.intraday` | Intraday candles                    |
 
 **Example:**
 ```ruby
@@ -306,16 +275,20 @@ Dhanhq::Mcp::Router.call(
 # => {ltp: 2500.0, bid: 2499.5, ask: 2500.5, volume: 1000000, ...}
 ```
 
-### Options Tools (4)
+### Options Analysis Tools (8) - Read-Only
 
-| Tool              | Description                 | Arguments                                                                                                         | Type        |
-| ----------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------- |
-| `option.expiries` | Available option expiries   | `exchange_segment`, `symbol`                                                                                      | Read-Only   |
-| `option.chain`    | Option chain data           | `exchange_segment`, `symbol`, `expiry`                                                                            | Read-Only   |
-| `option.select`   | Rule-based strike selection | `exchange_segment`, `symbol`, `expiry`, `direction`, `spot_price`, etc.                                           | Read-Only   |
-| `option.prepare`  | Prepare OPTIONS BUY intent  | `exchange_segment`, `symbol`, `security_id`, `option_type`, `strike`, `expiry`, `quantity`, `stop_loss`, `target` | Intent-Only |
+| Tool                  | Description                                    |
+| --------------------- | ---------------------------------------------- |
+| `option.expiries`     | Available option expiries                     |
+| `option.chain`        | Option chain data                             |
+| `option.select`       | Rule-based strike selection                   |
+| `option.filter_chain` | Advanced chain filtering with OI/volume/IV    |
+| `option.risk_reward`  | Calculate risk-reward metrics                 |
+| `option.probability`  | Calculate probability metrics                  |
+| `option.theta_analysis` | Analyze theta decay over time               |
+| `option.iv_metrics`   | Calculate IV percentile and rank              |
 
-**Example:**
+**Examples:**
 ```ruby
 # 1. Get expiries
 Dhanhq::Mcp::Router.call(
@@ -323,7 +296,6 @@ Dhanhq::Mcp::Router.call(
   {"exchange_segment" => "IDX_I", "symbol" => "NIFTY"},
   context
 )
-# => ["2026-01-30", "2026-02-06", ...]
 
 # 2. Get chain
 Dhanhq::Mcp::Router.call(
@@ -331,26 +303,95 @@ Dhanhq::Mcp::Router.call(
   {"exchange_segment" => "IDX_I", "symbol" => "NIFTY", "expiry" => "2026-01-30"},
   context
 )
-# => [{strike: 23000, option_type: "CE", ltp: 150, ...}, ...]
 
-# 3. Select strike
+# 3. Advanced filter
 Dhanhq::Mcp::Router.call(
-  "option.select",
+  "option.filter_chain",
   {
     "exchange_segment" => "IDX_I",
     "symbol" => "NIFTY",
     "expiry" => "2026-01-30",
-    "direction" => "BULLISH",
     "spot_price" => 23100,
-    "max_distance_pct" => 1.0,
-    "min_premium" => 50,
-    "max_premium" => 300
+    "filters" => {
+      "min_oi" => 100000,
+      "min_volume" => 50000,
+      "min_iv" => 10,
+      "max_iv" => 50
+    },
+    "sort_by" => "volume",
+    "limit" => 10
   },
   context
 )
-# => [{strike: 23200, option_type: "CE", ltp: 150, ...}]
 
-# 4. Prepare trade intent
+# 4. Risk-reward
+Dhanhq::Mcp::Router.call(
+  "option.risk_reward",
+  {
+    "exchange_segment" => "IDX_I",
+    "symbol" => "NIFTY",
+    "strike" => 23200,
+    "option_type" => "CE",
+    "premium" => 150,
+    "quantity" => 50,
+    "spot_price" => 23100
+  },
+  context
+)
+
+# 5. Probability
+Dhanhq::Mcp::Router.call(
+  "option.probability",
+  {
+    "exchange_segment" => "IDX_I",
+    "symbol" => "NIFTY",
+    "strike" => 23200,
+    "option_type" => "CE",
+    "premium" => 150,
+    "expiry" => "2026-01-30",
+    "spot_price" => 23100,
+    "iv" => 18.0
+  },
+  context
+)
+
+# 6. Theta analysis
+Dhanhq::Mcp::Router.call(
+  "option.theta_analysis",
+  {
+    "exchange_segment" => "IDX_I",
+    "symbol" => "NIFTY",
+    "strike" => 23200,
+    "option_type" => "CE",
+    "premium" => 150,
+    "expiry" => "2026-01-30",
+    "spot_price" => 23100,
+    "iv" => 18.0
+  },
+  context
+)
+
+# 7. IV metrics
+Dhanhq::Mcp::Router.call(
+  "option.iv_metrics",
+  {
+    "exchange_segment" => "IDX_I",
+    "symbol" => "NIFTY",
+    "expiry" => "2026-01-30",
+    "spot_price" => 23100
+  },
+  context
+)
+```
+
+### Options Tools (1) - Intent-Only
+
+| Tool         | Description                          |
+| ------------ | ------------------------------------ |
+| `option.prepare` | Prepare OPTIONS BUY intent         |
+
+**Example:**
+```ruby
 Dhanhq::Mcp::Router.call(
   "option.prepare",
   {
@@ -366,14 +407,27 @@ Dhanhq::Mcp::Router.call(
   },
   context
 )
-# => {trade_type: "OPTIONS_BUY", instrument: "NIFTY 23200 CE", note: "Await human confirmation", ...}
+# => {trade_type: "OPTIONS_BUY", instrument: "NIFTY 23200 CE", ...}
 ```
+
+### Orders Tools (10) - Execution / Write
+
+| Tool                  | Description                       |
+| --------------------- | --------------------------------- |
+| `orders.place`        | Place a new order                 |
+| `orders.modify`       | Modify a pending order            |
+| `orders.cancel`       | Cancel a pending order            |
+| `orders.get`          | Get order details by order ID     |
+| `orders.get_by_correlation` | Get order by correlation ID |
+| `orders.get_trades`   | Get trades for an order           |
+| `orders.history`      | Get trade history for date range  |
+| `orders.slice`        | Slice order into multiple legs    |
 
 ### Orders Tools (1) - Intent-Only
 
-| Tool             | Description                         | Arguments                                                                                                                                                                                      |
-| ---------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `orders.prepare` | Prepare EQUITY/FUTURES trade intent | `exchange_segment`, `symbol`, `transaction_type`, `product_type`, `order_type`, `quantity`, `price` (optional), `trigger_price` (optional), `amo`, `bo_flag`, `co_flag`, `stop_loss`, `target` |
+| Tool             | Description                                    |
+| ---------------- | ---------------------------------------------- |
+| `orders.prepare` | Prepare EQUITY/FUTURES trade intent            |
 
 **Example:**
 ```ruby
@@ -389,8 +443,100 @@ Dhanhq::Mcp::Router.call(
   },
   context
 )
-# => {trade_type: "EQUITY_FUTURES", instrument: "RELIANCE (NSE_EQ)", security_id: "1234", note: "Await human confirmation", ...}
+# => {trade_type: "EQUITY_FUTURES", instrument: "RELIANCE (NSE_EQ)", ...}
 ```
+
+### Super Orders (5)
+
+| Tool                  | Description                       | Type   |
+| --------------------- | --------------------------------- | ------ |
+| `super_orders.place`  | Place super/bracket order         | Write  |
+| `super_orders.modify` | Modify super order leg            | Write  |
+| `super_orders.cancel_leg` | Cancel specific leg            | Write  |
+| `super_orders.all`    | Get all super orders for the day  | Read-Only |
+| `super_orders.get`    | Get super order by ID             | Read-Only |
+
+### Conditional Triggers (5)
+
+| Tool                           | Description                        | Type   |
+| ------------------------------ | ---------------------------------- | ------ |
+| `conditional_triggers.place`   | Create conditional trigger         | Write  |
+| `conditional_triggers.modify`  | Modify conditional trigger         | Write  |
+| `conditional_triggers.delete`  | Delete conditional trigger         | Write  |
+| `conditional_triggers.all`     | Get all conditional triggers       | Read-Only |
+| `conditional_triggers.get`     | Get trigger by ID                  | Read-Only |
+
+### Positions (3)
+
+| Tool                  | Description                        | Type   |
+| --------------------- | ---------------------------------- | ------ |
+| `positions.active`    | Get only active/open positions     | Read-Only |
+| `positions.convert`   | Convert between product types      | Write  |
+| `positions.exit_all`  | Exit all open positions            | Write  |
+
+### Margin (2) - Intent-Only
+
+| Tool                     | Description                        |
+| ------------------------ | ---------------------------------- |
+| `margin.calculate`       | Calculate margin for single order  |
+| `margin.calculate_multi` | Calculate margin for multiple orders |
+
+### Trader's Control (6)
+
+| Tool                           | Description                        | Type   |
+| ------------------------------ | ---------------------------------- | ------ |
+| `traders_control.kill_switch_status` | Get kill switch status       | Read-Only |
+| `traders_control.activate_kill_switch` | Activate kill switch        | Write  |
+| `traders_control.deactivate_kill_switch` | Deactivate kill switch     | Write  |
+| `traders_control.configure_pnl_exit` | Configure P&L auto-exit       | Write  |
+| `traders_control.get_pnl_exit`       | Get P&L exit config           | Read-Only |
+| `traders_control.stop_pnl_exit`      | Stop P&L auto-exit            | Write  |
+
+### eDIS (4)
+
+| Tool                  | Description                        | Type   |
+| --------------------- | ---------------------------------- | ------ |
+| `edis.tpin`           | Generate T-PIN for EDIS auth       | Read-Only |
+| `edis.form`           | Generate eDIS form for single stock| Write  |
+| `edis.bulk_form`      | Generate bulk eDIS form            | Write  |
+| `edis.inquire`        | Check EDIS status                  | Read-Only |
+
+### Statements (2)
+
+| Tool                      | Description                        |
+| ------------------------- | ---------------------------------- |
+| `statements.ledger`       | Get ledger report for date range  |
+| `statements.trade_history`| Get trade history for date range  |
+
+### Account (4)
+
+| Tool                  | Description                        | Type   |
+| --------------------- | ---------------------------------- | ------ |
+| `account.get_ip`      | Get configured static IPs          | Read-Only |
+| `account.set_ip`      | Set primary/secondary IP           | Write  |
+| `account.modify_ip`   | Modify primary/secondary IP        | Write  |
+| `account.profile`     | Get user profile information       | Read-Only |
+
+### Expired Options Data (1)
+
+| Tool                          | Description                                    |
+| ----------------------------- | ---------------------------------------------- |
+| `expired_options_data.get`    | Get historical rolling options data with OHLC |
+
+### Skills (2)
+
+| Tool              | Description                                            |
+| ----------------- | ------------------------------------------------------ |
+| `skill.list`      | List all registered trading skills                      |
+| `skill.execute`    | Execute a trading skill by name                        |
+
+### Streaming (3)
+
+| Tool                  | Description                        |
+| --------------------- | ---------------------------------- |
+| `stream.subscribe`    | Subscribe to live market data      |
+| `stream.unsubscribe`  | Unsubscribe from live market data  |
+| `stream.status`       | List active subscriptions          |
 
 ---
 
@@ -632,29 +778,59 @@ bundle exec rake spec
 
 ```
 lib/dhanhq/mcp/
-├── server.rb          # Rack-based MCP HTTP server
-├── router.rb          # Routes MCP calls to tools
-├── tool_spec.rb       # MCP tool specifications (contract)
-├── context.rb         # Dependency injection container
-├── errors.rb          # Custom error classes
+├── server.rb             # Rack-based MCP HTTP server
+├── stdio_server.rb       # STDIO MCP server (Claude Desktop / CLI)
+├── router.rb             # Routes MCP calls to ToolRegistry
+├── tool_registry.rb      # Single source of truth for tool metadata + dispatch
+├── tool_spec.rb          # 67 MCP tool specifications (contract)
+├── prompt_spec.rb        # Prompt template definitions
+├── resource_spec.rb      # Resource endpoint definitions
+├── context.rb            # Dependency injection container
+├── errors.rb             # Custom error classes
+├── policy.rb             # Read/intent/write permission gates
+├── validator.rb          # Input validation
+├── version.rb            # Gem version
+├── stream/
+│   └── registry.rb       # Streaming registry helpers
 └── tools/
-    ├── base.rb        # Base class for all tools
-    ├── portfolio.rb   # Portfolio read-only tools
-    ├── instrument.rb  # Instrument discovery & market data
-    ├── orders.rb      # Order preparation (intent-only)
-    └── options/
-        ├── expiries.rb   # Option expiry list
-        ├── chain.rb      # Option chain fetcher
-        ├── selector.rb   # Rule-based strike selector
-        └── prepare.rb    # Options trade preparation
+    ├── base.rb           # Base class for all tools
+    ├── portfolio.rb      # Portfolio read-only tools
+    ├── instrument.rb     # Instrument discovery & market data
+    ├── orders.rb         # Order preparation (intent-only)
+    ├── orders_execution.rb # Live order execution tools
+    ├── super_orders.rb   # Super/bracket order tools
+    ├── conditional_triggers.rb # Conditional trigger tools
+    ├── positions.rb      # Position management
+    ├── margin.rb         # Margin calculator tools
+    ├── traders_control.rb # Kill switch / P&L exit tools
+    ├── edis.rb           # eDIS form tools
+    ├── statements.rb     # Ledger & trade history tools
+    ├── account.rb        # IP / profile tools
+    ├── expired_options_data.rb # Historical expired options data
+    ├── skill.rb          # Skill execution tools
+    ├── options/
+    │   ├── expiries.rb   # Option expiry list
+    │   ├── chain.rb      # Option chain fetcher
+    │   ├── selector.rb   # Rule-based strike selector
+    │   ├── prepare.rb    # Options trade preparation
+    │   ├── filter_chain.rb # Advanced chain filtering
+    │   ├── risk_reward.rb # Risk-reward calculations
+    │   ├── probability.rb # Probability metrics
+    │   ├── theta_analysis.rb # Theta decay analysis
+    │   └── iv_metrics.rb  # IV percentile / rank
+    └── stream/
+        ├── subscribe.rb  # Subscribe to market data
+        ├── unsubscribe.rb # Unsubscribe from market data
+        └── status.rb     # Subscription status
 ```
 
 ### Adding New Tools
 
 1. Add tool specification to `tool_spec.rb`
 2. Create tool class inheriting from `Tools::Base`
-3. Update `router.rb` to route the tool
-4. Require the tool in `lib/dhanhq/mcp.rb`
+3. Add handler to `ToolRegistry::HANDLERS`
+4. Add scope membership in `ToolRegistry::WRITE_TOOLS` / `INTENT_TOOLS` if applicable
+5. Require the tool in `lib/dhanhq/mcp.rb`
 
 **Example:**
 ```ruby
@@ -665,18 +841,33 @@ lib/dhanhq/mcp/
   input_schema: { type: "object", properties: {} }
 }
 
-# 2. tools/portfolio.rb
-def summary
-  {
-    total_value: client.funds[:available_balance],
-    holdings_count: client.holdings.count,
-    positions_count: client.positions.count
-  }
+# 2. tools/portfolio_summary.rb
+module Dhanhq
+  module Mcp
+    module Tools
+      class PortfolioSummary < Base
+        def call(_args)
+          client = context.client
+          {
+            total_value: client.funds[:available_balance],
+            holdings_count: client.holdings.count,
+            positions_count: client.positions.count
+          }
+        end
+      end
+    end
+  end
 end
 
-# 3. router.rb (already handles portfolio.* automatically via public_send)
+# 3. tool_registry.rb
+{
+  "portfolio.summary" => ->(context, _args) {
+    Tools::PortfolioSummary.new(context).call(_args)
+  }
+}
 
-# 4. Done! Tool is now available.
+# 4. lib/dhanhq/mcp.rb
+require_relative "mcp/tools/portfolio_summary"
 ```
 
 ---
@@ -723,7 +914,6 @@ COPY Gemfile* ./
 RUN bundle install
 
 COPY . .
-
 CMD ["bin/dhanhq-mcp-stdio"]
 ```
 
@@ -751,7 +941,6 @@ WantedBy=multi-user.target
 ## 📚 Resources
 
 - **DhanHQ Client Gem**: [dhanhq-client](https://github.com/shubhamtaywade82/dhanhq-client)
-- **Recommendation Response Schema**: [RECOMMENDATION_SCHEMA.md](RECOMMENDATION_SCHEMA.md)
 - **Model Context Protocol**: [MCP Specification](https://modelcontextprotocol.io/)
 - **DhanHQ API Docs**: [https://dhanhq.co/docs/v2/](https://dhanhq.co/docs/v2/)
 
