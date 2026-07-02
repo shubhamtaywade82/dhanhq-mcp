@@ -90,9 +90,9 @@ module Dhanhq
       end
 
       def handle_tools_list(id)
-        tools = Dhanhq::Mcp::TOOL_SPEC.map { |tool| convert_tool_to_mcp_format(tool) }
+        tools = Dhanhq::Mcp::ToolRegistry.tools.map { |tool| convert_tool_to_mcp_format(tool) }
         @logger.info("tools/list: returning #{tools.length} tools")
-        @logger.info("TOOL_SPEC length: #{Dhanhq::Mcp::TOOL_SPEC.length}")
+        @logger.info("TOOL_SPEC length: #{Dhanhq::Mcp::ToolRegistry.tools.length}")
         @logger.info("First tool name: #{tools.first["name"]}") if tools.any?
         send_response(id, { tools: tools })
       rescue StandardError => e
@@ -106,6 +106,11 @@ module Dhanhq
         deep_stringify_keys({
                               name: tool[:name].to_s,
                               description: tool[:description].to_s,
+                              annotations: {
+                                scope: tool[:scope].to_s,
+                                version: tool[:version].to_s,
+                                risk: tool[:risk].to_s,
+                              },
                               inputSchema: deep_stringify_keys(schema),
                             })
       end

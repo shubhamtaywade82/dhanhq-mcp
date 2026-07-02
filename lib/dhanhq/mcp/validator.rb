@@ -46,10 +46,11 @@ module Dhanhq
 
       def self.add_property_errors(schema, args, errors)
         properties(schema).each do |key, rules|
-          next unless args.key?(key)
+          argument_key = argument_key_for(args, key)
+          next unless argument_key
 
-          add_type_error(key, args[key], rules, errors)
-          add_enum_error(key, args[key], rules, errors)
+          add_type_error(argument_key, args[argument_key], rules, errors)
+          add_enum_error(argument_key, args[argument_key], rules, errors)
         end
       end
 
@@ -93,6 +94,13 @@ module Dhanhq
         schema[:properties] || {}
       end
 
+      def self.argument_key_for(args, key)
+        return key if args.key?(key)
+
+        string_key = key.to_s
+        string_key if args.key?(string_key)
+      end
+
       def self.raise_invalid!(tool_name, errors)
         raise Errors::InvalidArguments.new(
           "Invalid arguments for #{tool_name}",
@@ -100,6 +108,7 @@ module Dhanhq
         )
       end
 
+      # rubocop:disable Metrics/CyclomaticComplexity
       def self.type_valid?(value, expected)
         case expected
         when "string" then value.is_a?(String)
@@ -112,12 +121,14 @@ module Dhanhq
           true
         end
       end
+      # rubocop:enable Metrics/CyclomaticComplexity
 
       private_class_method :input_schema_for!, :build_errors, :ensure_hash!,
                            :add_required_errors, :add_property_errors,
                            :add_type_error, :add_enum_error, :add_unknown_key_errors,
                            :reject_unknown_keys?, :unknown_keys, :required_keys,
-                           :properties, :raise_invalid!, :type_valid?
+                           :properties, :argument_key_for, :raise_invalid!,
+                           :type_valid?
     end
   end
 end

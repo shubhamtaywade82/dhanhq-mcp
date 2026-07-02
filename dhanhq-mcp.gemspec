@@ -35,6 +35,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Runtime dependencies
+  spec.add_dependency "DhanHQ"
   spec.add_dependency "rack", ">= 2.0"
 
   # Development dependencies

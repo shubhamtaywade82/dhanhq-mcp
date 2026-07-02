@@ -16,8 +16,10 @@ end
 
 require_relative "mcp/version"
 require_relative "mcp/errors"
+require_relative "mcp/policy"
 require_relative "mcp/context"
 require_relative "mcp/tool_spec"
+require_relative "mcp/tool_registry"
 require_relative "mcp/prompt_spec"
 require_relative "mcp/resource_spec"
 require_relative "mcp/validator"
