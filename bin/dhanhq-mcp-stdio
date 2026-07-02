@@ -11,9 +11,10 @@ require "dhanhq-mcp"
 DhanHQ.configure_with_env
 DhanHQ.logger.level = (ENV["DHAN_LOG_LEVEL"] || "INFO").upcase.then { |level| Logger.const_get(level) }
 
-# Create context (tools use DhanHQ global config, not context.client)
-client = Object.new
-context = Dhanhq::Mcp::Context.new(client: client)
+# Create context with the real DhanHQ dependency and an explicit MCP policy.
+client = DhanHQ.respond_to?(:client) ? DhanHQ.client : DhanHQ
+policy = Dhanhq::Mcp::Policy.from_env
+context = Dhanhq::Mcp::Context.new(client: client, policy: policy)
 
 # Start MCP STDIO server - blocks forever
 server = Dhanhq::Mcp::StdioServer.new(context: context)

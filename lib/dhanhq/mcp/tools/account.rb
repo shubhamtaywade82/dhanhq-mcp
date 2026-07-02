@@ -8,7 +8,7 @@ module Dhanhq
         # Get configured IP addresses
         #
         # @return [Hash] IP configuration
-        def get_ip
+        def ip
           resource = DhanHQ::Resources::IP.new
           response = resource.get_ip
 
@@ -23,7 +23,7 @@ module Dhanhq
         #
         # @param args [Hash] dhan_client_id, ip, ip_flag
         # @return [Hash] set IP result
-        def set_ip(args)
+        def ip=(args)
           resource = DhanHQ::Resources::IP.new
           response = resource.set_ip(args)
 

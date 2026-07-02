@@ -53,7 +53,7 @@ module Dhanhq
 
         private
 
-        def normalize_response(response)
+        def normalized_response(response)
           if response.is_a?(Hash)
             if response[:status] == "success" || response[:edisStatus] == "SUCCESS"
               { success: true, message: response[:remarks] || response[:edisStatus] }

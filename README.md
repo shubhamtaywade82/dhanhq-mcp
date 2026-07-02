@@ -13,9 +13,9 @@ A production-ready, infrastructure-grade Ruby gem that exposes DhanHQ trading se
 
 `dhanhq-mcp` is a **protocol adapter** that:
 
-- Exposes a **safe subset** of `dhanhq-client` functionality to AI agents
+- Exposes `dhanhq-client` functionality through explicit **read-only**, **intent-only**, and **write-gated** MCP tools
 - Enforces **compliance checks** at the abstraction layer (ASM/GSM, trading permissions)
-- Provides **intent-only** order preparation (no auto-execution)
+- Provides **intent-only** order preparation by default, with broker writes disabled unless explicitly enabled
 - Follows an **Instrument-centric** design for correct trading semantics
 - Aligns **1:1 with `dhanhq-client`** architecture
 
@@ -44,9 +44,28 @@ instrument.quote
 
 ### Safety by Design
 
-- **Read-Only Tools (12)**: Market data, portfolio, instrument discovery
-- **Intent-Only Tools (2)**: Order preparation with no execution
-- **Zero Auto-Execution**: No `place_order`, `modify_order`, or `cancel_order` exposed
+`dhanhq-mcp` ships as a full MCP adapter, but its default runtime policy is
+safe:
+
+- **Read-only tools**: portfolio, instrument, market data, options, statements,
+  account profile, and status-style operations.
+- **Intent-only tools**: order/option preparation and margin calculations that
+  return previews without placing broker orders.
+- **Write tools**: order placement/modification/cancellation, super orders,
+  conditional triggers, kill-switch mutations, P&L control changes, eDIS forms,
+  position conversion/exits, and IP mutations.
+
+Write tools are present in `tools/list` for capability discovery, but execution
+is blocked unless all of the following are true:
+
+```bash
+export DHANHQ_MCP_ENABLE_WRITES=true
+export LIVE_TRADING=true
+export DHANHQ_MCP_SCOPES=read_only,intent_only,write
+```
+
+This means the default STDIO server can analyze markets and prepare trade
+intents, but it cannot place, modify, or cancel live orders.
 
 ---
 
@@ -100,6 +119,9 @@ gem install dhanhq-mcp
 | `DHAN_BASE_URL`        | ❌ No     | API base URL override                    | `https://api.dhan.co` |
 | `DHAN_CONNECT_TIMEOUT` | ❌ No     | Connection timeout in seconds            | `10`                  |
 | `DHAN_READ_TIMEOUT`    | ❌ No     | Read timeout in seconds                  | `30`                  |
+| `DHANHQ_MCP_ENABLE_WRITES` | ❌ No | Enables write-tool execution when `true` | `false` |
+| `LIVE_TRADING`         | ❌ No     | Confirms live broker-side trading when `true` | `false` |
+| `DHANHQ_MCP_SCOPES`    | ❌ No     | Comma-separated MCP scopes               | `read_only,intent_only` |
 
 **Note:** The `.env` file is automatically ignored by git to keep your credentials safe.
 

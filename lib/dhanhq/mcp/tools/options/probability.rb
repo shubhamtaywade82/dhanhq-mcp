@@ -17,12 +17,24 @@ module Dhanhq
             option_type = args["option_type"]
             premium = args["premium"].to_f
             spot_price = get_spot_price(args)
-            iv = args["iv"] || get_iv_from_chain(args, strike, option_type)
+            implied_volatility = args["iv"] || get_iv_from_chain(args, strike, option_type)
             days_to_expiry = calculate_days_to_expiry(args["expiry"])
 
             breakeven = calculate_breakeven(strike, option_type, premium)
-            prob_itm = calculate_probability_itm(strike, option_type, spot_price, iv, days_to_expiry)
-            prob_profit = calculate_probability_profit(breakeven, option_type, spot_price, iv, days_to_expiry)
+            prob_itm = calculate_probability_itm(
+              strike,
+              option_type,
+              spot_price,
+              implied_volatility,
+              days_to_expiry,
+            )
+            prob_profit = calculate_probability_profit(
+              breakeven,
+              option_type,
+              spot_price,
+              implied_volatility,
+              days_to_expiry,
+            )
             prob_otm = 1.0 - prob_itm
 
             {
@@ -30,7 +42,7 @@ module Dhanhq
               option_type: option_type,
               premium: premium,
               spot_price: spot_price,
-              iv: iv,
+              iv: implied_volatility,
               days_to_expiry: days_to_expiry,
               breakeven: breakeven.round(2),
               prob_itm: (prob_itm * 100).round(2),
@@ -62,7 +74,11 @@ module Dhanhq
 
             return 0.2 unless strike_data
 
-            opt_data = option_type == "CE" ? (strike_data[:ce] || strike_data["ce"]) : (strike_data[:pe] || strike_data["pe"])
+            opt_data = if option_type == "CE"
+                         strike_data[:ce] || strike_data["ce"]
+                       else
+                         strike_data[:pe] || strike_data["pe"]
+                       end
             return 0.2 unless opt_data
 
             (opt_data[:implied_volatility] || opt_data["implied_volatility"] || 0.2) / 100.0
@@ -83,12 +99,12 @@ module Dhanhq
             end
           end
 
-          def calculate_probability_itm(strike, option_type, spot_price, iv, days_to_expiry)
+          def calculate_probability_itm(strike, option_type, spot_price, implied_volatility, days_to_expiry)
             # Simplified Black-Scholes probability calculation
             # Using normal distribution approximation
-            return 0.5 if iv.zero? || days_to_expiry <= 0
+            return 0.5 if implied_volatility.zero? || days_to_expiry <= 0
 
-            d2 = calculate_d2(strike, spot_price, iv, days_to_expiry)
+            d2 = calculate_d2(strike, spot_price, implied_volatility, days_to_expiry)
             if option_type == "CE"
               # Probability spot > strike at expiry
               normal_cdf(d2)
@@ -98,11 +114,17 @@ module Dhanhq
             end
           end
 
-          def calculate_probability_profit(breakeven, option_type, spot_price, iv, days_to_expiry)
+          def calculate_probability_profit(
+            breakeven,
+            option_type,
+            spot_price,
+            implied_volatility,
+            days_to_expiry
+          )
             # Probability of reaching breakeven
-            return 0.5 if iv.zero? || days_to_expiry <= 0
+            return 0.5 if implied_volatility.zero? || days_to_expiry <= 0
 
-            d2 = calculate_d2(breakeven, spot_price, iv, days_to_expiry)
+            d2 = calculate_d2(breakeven, spot_price, implied_volatility, days_to_expiry)
             if option_type == "CE"
               # Probability spot > breakeven
               normal_cdf(d2)
@@ -112,23 +134,23 @@ module Dhanhq
             end
           end
 
-          def calculate_d2(strike, spot, iv, days)
+          def calculate_d2(strike, spot_price, implied_volatility, days_to_expiry)
             # Black-Scholes d2 calculation (simplified)
-            time_years = days / 365.0
+            time_years = days_to_expiry / 365.0
             return 0 if time_years <= 0
 
-            log_s_k = Math.log(spot / strike)
-            vol_sqrt_t = iv * Math.sqrt(time_years)
+            log_s_k = Math.log(spot_price / strike)
+            vol_sqrt_t = implied_volatility * Math.sqrt(time_years)
 
             return 0 if vol_sqrt_t.zero?
 
             (log_s_k / vol_sqrt_t) - (vol_sqrt_t / 2.0)
           end
 
-          def normal_cdf(x)
+          def normal_cdf(value)
             # Approximation of standard normal CDF
             # Using error function approximation
-            0.5 * (1 + Math.erf(x / Math.sqrt(2)))
+            0.5 * (1 + Math.erf(value / Math.sqrt(2)))
           end
 
           def interpret_probability(prob)

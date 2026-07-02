@@ -2,7 +2,10 @@
 
 module Dhanhq
   module Mcp
-    # Rack-based HTTP server for MCP protocol
+    # Experimental Rack-based HTTP facade.
+    #
+    # STDIO is the canonical MCP transport; this class is retained only for
+    # lightweight local integrations that expect a Rack app.
     class Server
       # Initialize server with context provider
       #
@@ -28,7 +31,7 @@ module Dhanhq
       def handle_mcp_request(req, payload)
         case payload["method"]
         when "tools/list"
-          ok(TOOL_SPEC)
+          ok(ToolRegistry.tools)
         when "tools/call"
           handle_tool_call(req, payload)
         else

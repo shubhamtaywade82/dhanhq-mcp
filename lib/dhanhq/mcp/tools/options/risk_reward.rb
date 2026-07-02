@@ -52,16 +52,9 @@ module Dhanhq
             )
           end
 
-          def calculate_max_profit(_strike, option_type, premium, quantity, _spot_price)
+          def calculate_max_profit(_strike, _option_type, premium, quantity, _spot_price)
             # For long options: unlimited profit potential (simplified to large number)
             # In practice, calculate based on expected move or target
-            if option_type == "CE"
-              # Call option: profit if spot > breakeven
-              # Simplified: assume 2x premium as reasonable target
-            else
-              # Put option: profit if spot < breakeven
-              # Simplified: assume 2x premium as reasonable target
-            end
             (premium * 2 * quantity).round(2)
           end
 

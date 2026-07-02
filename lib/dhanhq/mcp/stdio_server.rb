@@ -90,9 +90,9 @@ module Dhanhq
       end
 
       def handle_tools_list(id)
-        tools = Dhanhq::Mcp::TOOL_SPEC.map { |tool| convert_tool_to_mcp_format(tool) }
+        tools = Dhanhq::Mcp::ToolRegistry.tools.map { |tool| convert_tool_to_mcp_format(tool) }
         @logger.info("tools/list: returning #{tools.length} tools")
-        @logger.info("TOOL_SPEC length: #{Dhanhq::Mcp::TOOL_SPEC.length}")
+        @logger.info("TOOL_SPEC length: #{Dhanhq::Mcp::ToolRegistry.tools.length}")
         @logger.info("First tool name: #{tools.first["name"]}") if tools.any?
         send_response(id, { tools: tools })
       rescue StandardError => e
@@ -106,6 +106,11 @@ module Dhanhq
         deep_stringify_keys({
                               name: tool[:name].to_s,
                               description: tool[:description].to_s,
+                              annotations: {
+                                scope: tool[:scope].to_s,
+                                version: tool[:version].to_s,
+                                risk: tool[:risk].to_s,
+                              },
                               inputSchema: deep_stringify_keys(schema),
                             })
       end
@@ -221,7 +226,8 @@ module Dhanhq
 
       def build_analyze_options_chain_prompt(args)
         expiry = args["expiry"] || "nearest expiry"
-        content = "Analyze the options chain for #{args["symbol"]} (#{args["exchange_segment"]}) for expiry #{expiry}.\n\n"
+        content = "Analyze the options chain for #{args["symbol"]} "
+        content += "(#{args["exchange_segment"]}) for expiry #{expiry}.\n\n"
         content += "Steps:\n"
         content += "1. Use option.expiries to get available expiries (if expiry not provided, use nearest)\n"
         content += "2. Use option.chain to get the full option chain for the expiry\n"
@@ -254,12 +260,14 @@ module Dhanhq
         content += "- Quantity: #{args["quantity"]} lots\n"
         content += "- Stop loss: #{args["stop_loss"]}\n" if args["stop_loss"]
         content += "- Target: #{args["target"]}\n" if args["target"]
-        content += "\nFirst, use option.chain to get the security_id for this option, then use option.prepare to prepare the trade intent."
+        content += "\nFirst, use option.chain to get the security_id for this option,"
+        content += " then use option.prepare to prepare the trade intent."
         [{ role: "user", content: content }]
       end
 
       def build_select_options_strike_prompt(args)
-        content = "Select optimal option strike for #{args["symbol"]} (#{args["exchange_segment"]}) with #{args["direction"]} direction.\n\n"
+        content = "Select optimal option strike for #{args["symbol"]} "
+        content += "(#{args["exchange_segment"]}) with #{args["direction"]} direction.\n\n"
         content += "Parameters:\n"
         content += "- Expiry: #{args["expiry"]}\n"
         content += "- Spot price: #{args["spot_price"]}\n"

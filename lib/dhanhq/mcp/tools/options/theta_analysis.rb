@@ -66,7 +66,11 @@ module Dhanhq
 
             return 0.2 unless strike_data
 
-            opt_data = option_type == "CE" ? (strike_data[:ce] || strike_data["ce"]) : (strike_data[:pe] || strike_data["pe"])
+            opt_data = if option_type == "CE"
+                         strike_data[:ce] || strike_data["ce"]
+                       else
+                         strike_data[:pe] || strike_data["pe"]
+                       end
             return 0.2 unless opt_data
 
             (opt_data[:implied_volatility] || opt_data["implied_volatility"] || 0.2) / 100.0
@@ -79,7 +83,11 @@ module Dhanhq
 
             return -10.0 unless strike_data
 
-            opt_data = option_type == "CE" ? (strike_data[:ce] || strike_data["ce"]) : (strike_data[:pe] || strike_data["pe"])
+            opt_data = if option_type == "CE"
+                         strike_data[:ce] || strike_data["ce"]
+                       else
+                         strike_data[:pe] || strike_data["pe"]
+                       end
             return -10.0 unless opt_data
 
             greeks = opt_data[:greeks] || opt_data["greeks"] || {}

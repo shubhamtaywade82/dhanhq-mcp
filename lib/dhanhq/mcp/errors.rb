@@ -22,6 +22,9 @@ module Dhanhq
 
       # Raised when operation violates risk rules
       class RiskViolation < McpError; end
+
+      # Raised when a tool is blocked by the MCP permission policy
+      class PermissionDenied < McpError; end
     end
   end
 end

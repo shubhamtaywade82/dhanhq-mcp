@@ -7,15 +7,17 @@ module Dhanhq
     # Carries dependencies and metadata for tool execution.
     # No auth, no ENV - caller supplies everything.
     class Context
-      attr_reader :client, :meta
+      attr_reader :client, :meta, :policy
 
       # Initialize context with dependencies
       #
       # @param client [Object] DhanHQ client instance
       # @param meta [Hash] optional metadata
-      def initialize(client:, meta: {})
+      # @param policy [Policy] permission policy for tool execution
+      def initialize(client:, meta: {}, policy: Policy.default)
         @client = client
         @meta = meta
+        @policy = policy
       end
     end
   end
