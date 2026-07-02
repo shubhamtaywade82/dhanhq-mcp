@@ -9,9 +9,6 @@ module Dhanhq
         #
         # @return [Hash] kill switch status
         def kill_switch_status
-          DhanHQ::Models::KillSwitch.update("DEACTIVATE") # Using update to get status
-          # Actually we need a GET for status, but the model doesn't have it
-          # Let's use the resource directly
           resource = DhanHQ::Resources::KillSwitch.new
           response = resource.get_status
 

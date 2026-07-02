@@ -10,7 +10,7 @@ module Dhanhq
         # @return [Hash] T-PIN generation result
         def tpin
           result = DhanHQ::Models::Edis.tpin
-          normalize_response(result)
+          normalized_response(result)
         end
 
         # Generate eDIS form for single stock

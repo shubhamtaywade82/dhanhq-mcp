@@ -13,6 +13,14 @@ module Dhanhq
         def initialize(context)
           @context = context
         end
+
+        private
+
+        def with_risk_bridge
+          yield
+        rescue DhanHQ::RiskViolation => e
+          raise Errors::RiskViolation, e.message
+        end
       end
     end
   end

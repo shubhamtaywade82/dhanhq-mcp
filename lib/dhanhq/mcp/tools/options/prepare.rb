@@ -14,12 +14,15 @@ module Dhanhq
           def call(args)
             instrument = load_instrument(args)
 
-            Risk::Pipeline.run!(
-              context: context,
-              args: args,
-              instrument: instrument,
-              type: :options,
-            )
+            now = context.meta[:now] || context.meta["now"] || Time.now
+            with_risk_bridge do
+              DhanHQ::Risk::Pipeline.run!(
+                instrument: instrument,
+                args: args,
+                now: now,
+                type: :options,
+              )
+            end
 
             build_intent(instrument, args)
           end

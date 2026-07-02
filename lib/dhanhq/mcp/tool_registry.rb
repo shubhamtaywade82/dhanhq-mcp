@@ -16,6 +16,8 @@ module Dhanhq
 
       INTENT_TOOLS = %w[orders.prepare option.prepare margin.calculate margin.calculate_multi].freeze
 
+      SKILL_TOOLS = %w[skill.list skill.execute].freeze
+
       def self.execution_handlers
         %w[place modify cancel get get_by_correlation slice get_trades history].to_h do |action|
           handler = ->(context, args) { Tools::OrdersExecution.new(context).public_send(action, args) }
@@ -103,6 +105,8 @@ module Dhanhq
           "account.modify_ip" => ->(context, args) { Tools::Account.new(context).modify_ip(args) },
           "account.profile" => ->(context, _args) { Tools::Account.new(context).profile },
           "expired_options_data.get" => ->(context, args) { Tools::ExpiredOptionsData.new(context).get(args) },
+          "skill.list" => ->(_context, _args) { DhanHQ::Skills::Registry.list },
+          "skill.execute" => ->(context, args) { Tools::Skill.new(context).call(args) },
         },
       ).freeze
 
@@ -119,6 +123,8 @@ module Dhanhq
         context.policy.authorize!(tool)
         handler = HANDLERS.fetch(name) { raise Errors::UnknownTool, name }
         handler.call(context, args)
+      rescue DhanHQ::RiskViolation => e
+        raise Errors::RiskViolation, e.message
       end
 
       def self.enrich(tool)

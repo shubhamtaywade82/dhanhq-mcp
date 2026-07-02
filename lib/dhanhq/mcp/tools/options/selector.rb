@@ -16,7 +16,7 @@ module Dhanhq
             filtered = filter_chain(chain, args)
             ranked = rank_by_distance(filtered, args)
 
-            build_response(ranked)
+            build_response(ranked, args)
           end
 
           private
@@ -42,20 +42,20 @@ module Dhanhq
             end
           end
 
-          def build_response(ranked)
+          def build_response(ranked, args)
             ranked.first(3).map do |opt|
               {
                 security_id: opt.security_id,
                 strike: opt.strike,
                 option_type: opt.option_type,
                 ltp: opt.ltp,
-                distance_from_spot: distance(opt),
+                distance_from_spot: distance(opt, args),
               }
             end
           end
 
-          def distance(opt)
-            (opt.strike - context.meta[:spot_price]).round(2)
+          def distance(opt, args)
+            (opt.strike - args["spot_price"]).round(2)
           end
 
           def correct_side?(opt, args)

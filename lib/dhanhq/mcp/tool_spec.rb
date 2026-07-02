@@ -926,6 +926,27 @@ module Dhanhq
                        required_data from_date to_date],
         },
       },
+      # Skills
+      {
+        name: "skill.list",
+        description: "List all registered trading skills with their parameters and steps",
+        input_schema: {
+          type: "object",
+          properties: {},
+        },
+      },
+      {
+        name: "skill.execute",
+        description: "Execute a trading skill by name (multi-step workflow)",
+        input_schema: {
+          type: "object",
+          properties: {
+            name: { type: "string", description: "Skill name (e.g., buy_atm_call, iron_condor, square_off_all)" },
+            params: { type: "object", description: "Skill parameters" },
+          },
+          required: %w[name],
+        },
+      },
     ].freeze
   end
 end
