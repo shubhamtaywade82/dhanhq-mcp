@@ -7,7 +7,8 @@ module Dhanhq
       class ExpiredOptionsData < Base
         # Get historical rolling options data
         #
-        # @param args [Hash] exchange_segment, interval, security_id, instrument, expiry_flag, expiry_code, strike, drv_option_type, required_data, from_date, to_date
+        # @param args [Hash] exchange_segment, interval, security_id, instrument,
+        #   expiry_flag, expiry_code, strike, drv_option_type, required_data, from_date, to_date
         # @return [Hash] expired options data
         def get(args)
           resource = DhanHQ::Resources::ExpiredOptionsData.new

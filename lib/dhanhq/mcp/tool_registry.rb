@@ -3,7 +3,6 @@
 module Dhanhq
   module Mcp
     # Single source of truth for MCP tool metadata, scopes, and dispatch handlers.
-    # rubocop:disable Metrics/ClassLength
     class ToolRegistry
       WRITE_TOOLS = %w[
         orders.place orders.modify orders.cancel orders.slice
@@ -91,7 +90,7 @@ module Dhanhq
           "traders_control.configure_pnl_exit" => lambda do |context, args|
             Tools::TradersControl.new(context).configure_pnl_exit(args)
           end,
-          "traders_control.get_pnl_exit" => ->(context, _args) { Tools::TradersControl.new(context).get_pnl_exit },
+          "traders_control.get_pnl_exit" => ->(context, _args) { Tools::TradersControl.new(context).pnl_exit },
           "traders_control.stop_pnl_exit" => ->(context, _args) { Tools::TradersControl.new(context).stop_pnl_exit },
           "edis.tpin" => ->(context, _args) { Tools::Edis.new(context).tpin },
           "edis.form" => ->(context, args) { Tools::Edis.new(context).form(args) },
@@ -99,8 +98,8 @@ module Dhanhq
           "edis.inquire" => ->(context, args) { Tools::Edis.new(context).inquire(args) },
           "statements.ledger" => ->(context, args) { Tools::Statements.new(context).ledger(args) },
           "statements.trade_history" => ->(context, args) { Tools::Statements.new(context).trade_history(args) },
-          "account.get_ip" => ->(context, _args) { Tools::Account.new(context).get_ip },
-          "account.set_ip" => ->(context, args) { Tools::Account.new(context).set_ip(args) },
+          "account.get_ip" => ->(context, _args) { Tools::Account.new(context).ip },
+          "account.set_ip" => ->(context, args) { Tools::Account.new(context).ip = args },
           "account.modify_ip" => ->(context, args) { Tools::Account.new(context).modify_ip(args) },
           "account.profile" => ->(context, _args) { Tools::Account.new(context).profile },
           "expired_options_data.get" => ->(context, args) { Tools::ExpiredOptionsData.new(context).get(args) },
@@ -135,6 +134,5 @@ module Dhanhq
       end
       private_class_method :enrich
     end
-    # rubocop:enable Metrics/ClassLength
   end
 end

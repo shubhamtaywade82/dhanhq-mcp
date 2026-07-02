@@ -17,7 +17,7 @@ module Dhanhq
           Checks::Options,
         ].freeze
 
-        def self.run!(context:, args:, instrument:, type:)
+        def self.call(context:, args:, instrument:, type:)
           run_checks!(CHECKS, context, args, instrument)
           run_checks!(OPTION_CHECKS, context, args, instrument) if type == :options
           true

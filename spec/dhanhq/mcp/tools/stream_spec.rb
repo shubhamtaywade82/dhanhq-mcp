@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-RSpec.describe "Streaming tools" do
+RSpec.describe Dhanhq::Mcp::Tools::Stream do
   let(:client) { double("client") }
   let(:registry) { Dhanhq::Mcp::Stream::Registry.new }
   let(:context) { Dhanhq::Mcp::Context.new(client: client, meta: { stream_registry: registry }) }

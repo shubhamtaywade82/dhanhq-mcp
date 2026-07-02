@@ -52,7 +52,7 @@ module Dhanhq
         # Get P&L exit configuration
         #
         # @return [Hash] current P&L exit config
-        def get_pnl_exit
+        def pnl_exit
           resource = DhanHQ::Resources::PnlExit.new
           response = resource.get_config
 

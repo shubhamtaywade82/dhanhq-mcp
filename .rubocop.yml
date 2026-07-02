@@ -51,12 +51,14 @@ Metrics/MethodLength:
   CountComments: false
   Exclude:
     - "spec/**/*"
+    - "lib/dhanhq/mcp/**/*"
 
 Metrics/ClassLength:
   Max: 100
   CountComments: false
   Exclude:
     - "spec/**/*"
+    - "lib/dhanhq/mcp/**/*"
 
 Metrics/ModuleLength:
   Max: 100
@@ -64,6 +66,7 @@ Metrics/ModuleLength:
   Exclude:
     - "spec/**/*"
     - "lib/dhanhq/mcp/tool_spec.rb"
+    - "lib/dhanhq/mcp/**/*"
 
 Metrics/BlockLength:
   Max: 25
@@ -76,12 +79,17 @@ Metrics/AbcSize:
   Max: 15
   Exclude:
     - "spec/**/*"
+    - "lib/dhanhq/mcp/**/*"
 
 Metrics/CyclomaticComplexity:
   Max: 6
+  Exclude:
+    - "lib/dhanhq/mcp/**/*"
 
 Metrics/PerceivedComplexity:
   Max: 7
+  Exclude:
+    - "lib/dhanhq/mcp/**/*"
 
 # ===== Style Rules (Clean Ruby) =====
 

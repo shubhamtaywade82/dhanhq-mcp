@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "ostruct"
-
 module FakeInstrument
   DEFAULTS = {
     symbol: "NIFTY",
@@ -26,6 +24,6 @@ module FakeInstrument
   }.freeze
 
   def self.build(overrides = {})
-    OpenStruct.new(DEFAULTS.merge(overrides))
+    Struct.new(*DEFAULTS.keys, keyword_init: true).new(**DEFAULTS, **overrides)
   end
 end

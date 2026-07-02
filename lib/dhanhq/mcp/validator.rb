@@ -108,7 +108,6 @@ module Dhanhq
         )
       end
 
-      # rubocop:disable Metrics/CyclomaticComplexity
       def self.type_valid?(value, expected)
         case expected
         when "string" then value.is_a?(String)
@@ -121,14 +120,11 @@ module Dhanhq
           true
         end
       end
-      # rubocop:enable Metrics/CyclomaticComplexity
-
       private_class_method :input_schema_for!, :build_errors, :ensure_hash!,
-                           :add_required_errors, :add_property_errors,
-                           :add_type_error, :add_enum_error, :add_unknown_key_errors,
-                           :reject_unknown_keys?, :unknown_keys, :required_keys,
-                           :properties, :argument_key_for, :raise_invalid!,
-                           :type_valid?
+                           :add_required_errors, :add_property_errors, :add_type_error,
+                           :add_enum_error, :add_unknown_key_errors, :reject_unknown_keys?,
+                           :unknown_keys, :required_keys, :properties, :argument_key_for,
+                           :raise_invalid!, :type_valid?
     end
   end
 end
