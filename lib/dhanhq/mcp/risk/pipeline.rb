@@ -23,6 +23,10 @@ module Dhanhq
           true
         end
 
+        def self.run!(context:, args:, instrument:, type:)
+          call(context: context, args: args, instrument: instrument, type: type)
+        end
+
         def self.run_checks!(checks, context, args, instrument)
           checks.each do |check|
             check.run!(context: context, args: args, instrument: instrument)
