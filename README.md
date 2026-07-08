@@ -13,11 +13,11 @@ A production-ready, infrastructure-grade Ruby gem that exposes DhanHQ trading se
 
 `dhanhq-mcp` is a **protocol adapter** that:
 
-- Exposes `dhanhq-client` functionality through explicit **read-only**, **intent-only**, and **write-gated** MCP tools
+- Integrates **DhanHQ** functionality through explicit **read-only**, **intent-only**, and **write-gated** MCP tools
 - Enforces **compliance checks** at the abstraction layer (ASM/GSM, trading permissions)
 - Provides **intent-only** order preparation by default, with broker writes disabled unless explicitly enabled
 - Follows an **Instrument-centric** design for correct trading semantics
-- Aligns **1:1 with `dhanhq-client`** architecture
+- Aligns **1:1 with the `DhanHQ` Ruby SDK**
 
 ---
 
@@ -235,7 +235,7 @@ rackup -p 3000
 
 ---
 
-## 🔧 Complete Tool Inventory (67 Tools)
+## 🔧 Tool Inventory (68 tools)
 
 ### Portfolio Tools (5) - Read-Only
 
@@ -710,7 +710,7 @@ All order/option preparation tools enforce:
 
 **Execution flow:**
 ```
-MCP (prepare) → Intent → Rails/Human → Confirmation → dhanhq-client (execute)
+MCP (prepare) → Intent → Rails/Human → Confirmation → DhanHQ (execute)
 ```
 
 ---
@@ -887,10 +887,10 @@ MCP tools prepare trade intents; execution happens outside MCP with human confir
 - Refactor continuously
 
 ### 4. Dependency Injection
-All tools receive a `Context` object with the `dhanhq-client` instance, enabling testability.
+All tools receive a `Context` object with the `DhanHQ` client instance, enabling testability.
 
 ### 5. Protocol Adapter
-`dhanhq-mcp` is a thin, safe adapter—not a reimplementation. It exposes a bounded subset of `dhanhq-client`.
+`dhanhq-mcp` is a thin, safe adapter—not a reimplementation. It exposes a bounded subset of `DhanHQ`.
 
 ---
 
@@ -940,7 +940,7 @@ WantedBy=multi-user.target
 
 ## 📚 Resources
 
-- **DhanHQ Client Gem**: [dhanhq-client](https://github.com/shubhamtaywade82/dhanhq-client)
+- **DhanHQ Ruby SDK**: [https://github.com/shubhamtaywade82/DhanHQ](https://github.com/shubhamtaywade82/DhanHQ)
 - **Model Context Protocol**: [MCP Specification](https://modelcontextprotocol.io/)
 - **DhanHQ API Docs**: [https://dhanhq.co/docs/v2/](https://dhanhq.co/docs/v2/)
 

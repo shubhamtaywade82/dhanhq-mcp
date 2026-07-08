@@ -197,9 +197,11 @@ GEM
     zeitwerk (2.8.2)
 
 PLATFORMS
+  ruby
   x86_64-linux
 
 DEPENDENCIES
+  DhanHQ (~> 3.0)
   dhanhq-mcp!
   dotenv
   irb

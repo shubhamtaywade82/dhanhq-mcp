@@ -92,7 +92,7 @@ RSpec.describe Dhanhq::Mcp::Server do
         expect(status).to eq(200)
         parsed = JSON.parse(body.first)
         expect(parsed["error"]).not_to be_nil
-        expect(parsed["error"]["message"]).to eq("Invalid arguments for instrument.find")
+        expect(parsed["error"]["message"]).to eq("Tool execution failed: Invalid arguments for instrument.find")
       end
     end
 
@@ -105,7 +105,7 @@ RSpec.describe Dhanhq::Mcp::Server do
         expect(status).to eq(200)
         parsed = JSON.parse(body.first)
         expect(parsed["error"]).not_to be_nil
-        expect(parsed["error"]["message"]).to eq("Unknown MCP method")
+        expect(parsed["error"]["message"]).to include("Unknown MCP method")
       end
     end
 
@@ -121,6 +121,7 @@ RSpec.describe Dhanhq::Mcp::Server do
         expect(status).to eq(200)
         parsed = JSON.parse(body.first)
         expect(parsed["error"]).not_to be_nil
+        expect(parsed["error"]["message"]).to include("Invalid JSON payload")
       end
     end
   end

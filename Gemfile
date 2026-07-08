@@ -5,6 +5,8 @@ source "https://rubygems.org"
 # Specify your gem's dependencies in dhanhq-mcp.gemspec
 gemspec
 
+gem "DhanHQ", "~> 3.0"
+
 gem "irb"
 gem "rake", "~> 13.0"
 gem "simplecov", require: false
