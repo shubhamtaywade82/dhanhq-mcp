@@ -21,6 +21,11 @@ module Dhanhq
         rescue DhanHQ::RiskViolation => e
           raise Errors::RiskViolation, e.message
         end
+
+        # Reference time for risk checks; injectable via context.meta[:now] in tests.
+        def current_time
+          context.meta[:now] || context.meta["now"] || Time.now
+        end
       end
     end
   end

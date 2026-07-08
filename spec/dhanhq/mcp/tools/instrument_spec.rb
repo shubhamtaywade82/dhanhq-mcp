@@ -41,6 +41,58 @@ RSpec.describe Dhanhq::Mcp::Tools::Instrument do
     end
   end
 
+  describe "#search" do
+    let(:search_result) { double("search_result") }
+
+    before do
+      allow(search_result).to receive_messages(
+        security_id: "11536",
+        symbol_name: "TCS",
+        display_name: "Tata Consultancy Services Ltd",
+        exchange_segment: "NSE_EQ",
+        instrument: "EQUITY",
+        instrument_type: "EQUITY",
+        lot_size: 1,
+        tick_size: 0.05,
+        expiry_date: nil,
+        strike_price: nil,
+        option_type: nil,
+        underlying_symbol: "TCS",
+        isin: "INE467B01029",
+      )
+    end
+
+    it "requires a query" do
+      expect(tool.search({})).to eq(error: "query is required")
+    end
+
+    it "rejects a blank query" do
+      expect(tool.search("query" => "  ")).to eq(error: "query is required")
+    end
+
+    it "searches across default segments and serializes results" do
+      allow(DhanHQ::Models::Instrument).to receive(:search)
+        .with("TCS", { limit: 20 })
+        .and_return([search_result])
+
+      result = tool.search("query" => "TCS")
+
+      expect(result.length).to eq(1)
+      expect(result.first).to include(security_id: "11536", symbol: "TCS", isin: "INE467B01029")
+    end
+
+    it "passes exchange_segments and limit through to the client" do
+      allow(DhanHQ::Models::Instrument).to receive(:search)
+        .with("RELIANCE", { limit: 5, segments: %w[NSE_EQ BSE_EQ] })
+        .and_return([])
+
+      tool.search("query" => "RELIANCE", "exchange_segments" => %w[NSE_EQ BSE_EQ], "limit" => 5)
+
+      expect(DhanHQ::Models::Instrument).to have_received(:search)
+        .with("RELIANCE", { limit: 5, segments: %w[NSE_EQ BSE_EQ] })
+    end
+  end
+
   describe "#info" do
     before do
       allow(instrument).to receive_messages(isin: "INE123A01012", buy_sell_indicator: "A", bracket_flag: "Y", cover_flag: "Y", asm_gsm_flag: "N", mtf_leverage: 5, buy_co_min_margin_per: 10.5, sell_co_min_margin_per: 20.0)

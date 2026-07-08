@@ -40,7 +40,8 @@ module Dhanhq
               subscription_id: subscription_id,
               instrument: instrument.symbol_name,
               feed_type: feed_type,
-              status: "subscribed",
+              status: "registered",
+              note: "Subscription intent registered. Live data is delivered by an external feed worker.",
             }
           end
 

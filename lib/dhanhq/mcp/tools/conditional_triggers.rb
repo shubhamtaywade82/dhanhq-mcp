@@ -3,44 +3,37 @@
 module Dhanhq
   module Mcp
     module Tools
-      # Conditional trigger tools - place, modify, delete, get all, get by ID
+      # Conditional trigger (alert order) tools - place, modify, delete, get all, get by ID.
+      # Backed by DhanHQ::Models::AlertOrder (POST/PUT/DELETE/GET /v2/alerts/orders),
+      # which validates payloads via AlertOrderContract and requires LIVE_TRADING for writes.
       class ConditionalTriggers < Base
         # Place a new conditional trigger
         #
-        # @param args [Hash] conditional trigger parameters
+        # @param args [Hash] condition + orders payload
         # @return [Hash] created conditional trigger details
         def place(args)
-          # The DhanHQ client doesn't have a ConditionalTrigger model yet
-          # We'll use the resource directly
-          resource = DhanHQ::Resources::ConditionalTriggers.new
-          response = resource.create(args)
+          alert = DhanHQ::Models::AlertOrder.create(args)
+          return { success: false, error: "Failed to create conditional trigger" } unless alert
 
-          if response.is_a?(Hash) && response[:status] == "success"
-            { success: true, alert_id: response[:data]["alertId"] || response[:data]["alert_id"],
-              data: response[:data] }
-          else
-            { success: false,
-              error: response[:errorMessage] || response[:message] || "Failed to create conditional trigger" }
-          end
+          { success: true, alert_id: alert.id }.merge(serialize_alert(alert))
+        rescue DhanHQ::Error => e
+          { success: false, error: e.message }
         end
 
         # Modify an existing conditional trigger
         #
-        # @param args [Hash] alert_id and modification parameters
+        # @param args [Hash] alert_id plus full condition + orders payload
         # @return [Hash] modification result
         def modify(args)
           alert_id = args["alert_id"]
           return { error: "alert_id is required" } unless alert_id
 
-          resource = DhanHQ::Resources::ConditionalTriggers.new
-          response = resource.update(alert_id, args)
+          alert = DhanHQ::Models::AlertOrder.modify(alert_id, args.except("alert_id"))
+          return { success: false, error: "Failed to modify conditional trigger" } unless alert
 
-          if response.is_a?(Hash) && response[:status] == "success"
-            { success: true, data: response[:data] }
-          else
-            { success: false,
-              error: response[:errorMessage] || response[:message] || "Failed to modify conditional trigger" }
-          end
+          { success: true }.merge(serialize_alert(alert))
+        rescue DhanHQ::Error => e
+          { success: false, error: e.message }
         end
 
         # Delete a conditional trigger
@@ -51,29 +44,20 @@ module Dhanhq
           alert_id = args["alert_id"]
           return { error: "alert_id is required" } unless alert_id
 
-          resource = DhanHQ::Resources::ConditionalTriggers.new
-          response = resource.delete(alert_id)
+          alert = DhanHQ::Models::AlertOrder.find(alert_id)
+          return { success: false, error: "Conditional trigger not found" } unless alert
 
-          if response.is_a?(Hash) && response[:status] == "success"
-            { success: true, alert_id: alert_id }
-          else
-            { success: false,
-              error: response[:errorMessage] || response[:message] || "Failed to delete conditional trigger" }
-          end
+          success = alert.destroy
+          { success: success, alert_id: alert_id }
+        rescue DhanHQ::Error => e
+          { success: false, error: e.message }
         end
 
         # Get all conditional triggers
         #
         # @return [Array<Hash>] conditional triggers
         def all
-          resource = DhanHQ::Resources::ConditionalTriggers.new
-          response = resource.all
-
-          if response.is_a?(Array)
-            response.map { |t| normalize_keys(t) }
-          else
-            []
-          end
+          DhanHQ::Models::AlertOrder.all.map { |alert| serialize_alert(alert) }
         end
 
         # Get conditional trigger by ID
@@ -84,20 +68,28 @@ module Dhanhq
           alert_id = args["alert_id"]
           return { error: "alert_id is required" } unless alert_id
 
-          resource = DhanHQ::Resources::ConditionalTriggers.new
-          response = resource.find(alert_id)
+          alert = DhanHQ::Models::AlertOrder.find(alert_id)
+          return { error: "Conditional trigger not found" } unless alert
 
-          if response.is_a?(Hash)
-            normalize_keys(response)
-          else
-            { error: "Conditional trigger not found" }
-          end
+          serialize_alert(alert)
         end
 
         private
 
-        def normalize_keys(hash)
-          hash.transform_keys { |k| k.to_s.underscore.to_sym }
+        def serialize_alert(alert)
+          {
+            alert_id: alert.alert_id,
+            exchange_segment: alert.exchange_segment,
+            security_id: alert.security_id,
+            condition: alert.condition,
+            trigger_price: alert.trigger_price,
+            order_type: alert.order_type,
+            transaction_type: alert.transaction_type,
+            quantity: alert.quantity,
+            price: alert.price,
+            status: alert.status,
+            created_at: alert.created_at,
+          }.compact
         end
       end
     end

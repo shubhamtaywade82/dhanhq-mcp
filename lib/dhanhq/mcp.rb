@@ -17,6 +17,7 @@ end
 require_relative "mcp/version"
 require_relative "mcp/errors"
 require_relative "mcp/policy"
+require_relative "mcp/risk/execution_guard"
 require_relative "mcp/context"
 require_relative "mcp/tool_spec"
 require_relative "mcp/tool_registry"

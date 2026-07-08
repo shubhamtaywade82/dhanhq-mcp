@@ -14,6 +14,22 @@ module Dhanhq
           build_instrument_response(inst)
         end
 
+        # Fuzzy-search instruments by name, ticker, or ISIN across segments.
+        # Resolves company names and indices to Dhan security IDs.
+        #
+        # @param args [Hash] query (required), exchange_segments, limit
+        # @return [Array<Hash>] matching instruments
+        def search(args)
+          query = args["query"].to_s.strip
+          return { error: "query is required" } if query.empty?
+
+          options = { limit: args["limit"] || 20 }
+          segments = Array(args["exchange_segments"])
+          options[:segments] = segments unless segments.empty?
+
+          DhanHQ::Models::Instrument.search(query, options).map { |result| serialize_search_result(result) }
+        end
+
         # Get trading permissions and risk metadata
         #
         # @param args [Hash] exchange_segment and symbol
@@ -96,6 +112,24 @@ module Dhanhq
           return "NONE" unless inst.asm_gsm_flag == "Y"
 
           inst.asm_gsm_category
+        end
+
+        def serialize_search_result(result)
+          {
+            security_id: result.security_id,
+            symbol: result.symbol_name,
+            display_name: result.display_name,
+            exchange_segment: result.exchange_segment,
+            instrument: result.instrument,
+            instrument_type: result.instrument_type,
+            lot_size: result.lot_size,
+            tick_size: result.tick_size,
+            expiry_date: result.expiry_date,
+            strike_price: result.strike_price,
+            option_type: result.option_type,
+            underlying_symbol: result.underlying_symbol,
+            isin: result.isin,
+          }.compact
         end
 
         def build_instrument_response(inst)
