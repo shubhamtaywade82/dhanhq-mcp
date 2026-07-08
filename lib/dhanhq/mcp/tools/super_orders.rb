@@ -3,14 +3,17 @@
 module Dhanhq
   module Mcp
     module Tools
-      # Super order execution tools - place, modify, cancel legs, get all
+      # Super order execution tools - place, modify, cancel legs, get all.
+      # Placement and modification run Risk::ExecutionGuard before touching the
+      # broker (LIMIT-by-default, lot-size, market-hours, instrument checks).
       class SuperOrders < Base
         # Place a new super order (bracket order)
         #
         # @param args [Hash] super order parameters
         # @return [Hash] placed super order details
         def place(args)
-          order = DhanHQ::Models::SuperOrder.create(args)
+          guarded = with_risk_bridge { Risk::ExecutionGuard.for_placement!(args, now: current_time) }
+          order = DhanHQ::Models::SuperOrder.create(guarded)
           return { error: "Super order placement failed" } unless order
 
           serialize_super_order(order)
@@ -23,6 +26,8 @@ module Dhanhq
         def modify(args)
           order_id = args["order_id"]
           return { error: "order_id is required" } unless order_id
+
+          with_risk_bridge { Risk::ExecutionGuard.for_modification!(args) }
 
           order = DhanHQ::Models::SuperOrder.all.find { |o| o.order_id == order_id }
           return { error: "Super order not found" } unless order

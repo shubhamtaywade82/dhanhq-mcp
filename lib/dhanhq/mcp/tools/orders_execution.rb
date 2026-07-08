@@ -3,14 +3,18 @@
 module Dhanhq
   module Mcp
     module Tools
-      # Order execution tools - actual order placement, modification, cancellation
+      # Order execution tools - actual order placement, modification, cancellation.
+      # Placement and modification run Risk::ExecutionGuard before touching the
+      # broker: LIMIT-by-default, price/trigger validation, lot-size checks,
+      # market-hours and instrument-level restrictions.
       class OrdersExecution < Base
         # Place a new order
         #
         # @param args [Hash] order parameters
         # @return [Hash] placed order details
         def place(args)
-          order = DhanHQ::Models::Order.place(args)
+          guarded = with_risk_bridge { Risk::ExecutionGuard.for_placement!(args, now: current_time) }
+          order = DhanHQ::Models::Order.place(guarded)
           return { error: "Order placement failed" } unless order
 
           serialize_order(order)
@@ -23,6 +27,8 @@ module Dhanhq
         def modify(args)
           order_id = args["order_id"]
           return { error: "order_id is required" } unless order_id
+
+          with_risk_bridge { Risk::ExecutionGuard.for_modification!(args) }
 
           order = DhanHQ::Models::Order.find(order_id)
           return { error: "Order not found" } unless order
@@ -85,10 +91,12 @@ module Dhanhq
           order_id = args["order_id"]
           return { error: "order_id is required" } unless order_id
 
+          guarded = with_risk_bridge { Risk::ExecutionGuard.for_placement!(args, now: current_time) }
+
           order = DhanHQ::Models::Order.find(order_id)
           return { error: "Order not found" } unless order
 
-          new_params = args.except("order_id")
+          new_params = guarded.except("order_id")
           result = order.slice_order(new_params)
           return { error: "Slice order failed" } unless result
 

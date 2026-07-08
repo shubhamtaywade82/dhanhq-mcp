@@ -60,6 +60,20 @@ module Dhanhq
         },
       },
       {
+        name: "instrument.search",
+        description: "Fuzzy-search instruments by company name, ticker, index name, or ISIN " \
+                     "across exchange segments. Resolves names to Dhan security IDs for order placement",
+        input_schema: {
+          type: "object",
+          properties: {
+            query: { type: "string" },
+            exchange_segments: { type: "array" },
+            limit: { type: "integer" },
+          },
+          required: %w[query],
+        },
+      },
+      {
         name: "instrument.info",
         description: "Trading permissions and risk metadata",
         input_schema: {
@@ -321,7 +335,9 @@ module Dhanhq
       # Streaming control
       {
         name: "stream.subscribe",
-        description: "Subscribe to live market data for an instrument",
+        description: "Register a market-data subscription intent for an instrument. " \
+                     "Registration only — data is delivered by an external feed worker, " \
+                     "not pushed through this MCP server; use instrument.ltp/quote for snapshots",
         input_schema: {
           type: "object",
           properties: {
@@ -334,7 +350,7 @@ module Dhanhq
       },
       {
         name: "stream.unsubscribe",
-        description: "Unsubscribe from live market data for an instrument",
+        description: "Remove a previously registered market-data subscription intent",
         input_schema: {
           type: "object",
           properties: {
@@ -345,7 +361,7 @@ module Dhanhq
       },
       {
         name: "stream.status",
-        description: "List active market data subscriptions",
+        description: "List registered market-data subscription intents",
         input_schema: {
           type: "object",
           properties: {},
@@ -354,7 +370,8 @@ module Dhanhq
       # Orders – execution
       {
         name: "orders.place",
-        description: "Place a new order (execution)",
+        description: "Place a new order (execution). Runs pre-trade risk checks; " \
+                     "order_type defaults to LIMIT when omitted",
         input_schema: {
           type: "object",
           properties: {
@@ -375,7 +392,7 @@ module Dhanhq
             bo_profit_value: { type: "number" },
             bo_stop_loss_value: { type: "number" },
           },
-          required: %w[transaction_type exchange_segment product_type order_type validity security_id quantity],
+          required: %w[transaction_type exchange_segment product_type validity security_id quantity],
         },
       },
       {
@@ -431,7 +448,8 @@ module Dhanhq
       },
       {
         name: "orders.slice",
-        description: "Slice order into multiple legs for quantities exceeding freeze limit",
+        description: "Slice order into multiple legs for quantities exceeding freeze limit. " \
+                     "Runs pre-trade risk checks; order_type defaults to LIMIT when omitted",
         input_schema: {
           type: "object",
           properties: {
@@ -451,7 +469,7 @@ module Dhanhq
             after_market_order: { type: "boolean" },
             amo_time: { enum: %w[PRE_OPEN OPEN OPEN_30 OPEN_60] },
           },
-          required: %w[order_id transaction_type exchange_segment product_type order_type validity quantity],
+          required: %w[order_id transaction_type exchange_segment product_type validity quantity],
         },
       },
       {
@@ -481,7 +499,8 @@ module Dhanhq
       # Super Orders
       {
         name: "super_orders.place",
-        description: "Place a super order (bracket order with entry, target, stop-loss)",
+        description: "Place a super order (bracket order with entry, target, stop-loss). " \
+                     "Runs pre-trade risk checks; order_type defaults to LIMIT when omitted",
         input_schema: {
           type: "object",
           properties: {
@@ -498,7 +517,7 @@ module Dhanhq
             stop_loss_price: { type: "number" },
             trailing_jump: { type: "number" },
           },
-          required: %w[transaction_type exchange_segment product_type order_type security_id quantity price
+          required: %w[transaction_type exchange_segment product_type security_id quantity price
                        target_price stop_loss_price trailing_jump],
         },
       },

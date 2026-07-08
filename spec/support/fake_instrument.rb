@@ -13,6 +13,7 @@ module FakeInstrument
     expiry_flag: "Y",
     security_id: "12345",
     isin: "IN0000000001",
+    lot_size: 1,
     buy_sell_indicator: "A",
     bracket_flag: "Y",
     cover_flag: "Y",
